@@ -1,0 +1,97 @@
+﻿Technical Design Document: Smart-Adapt CV
+Proyecto: Motor de Optimización de Carrera con IA Híbrida
+Arquitecto: [Tu Nombre/Senior Software Architect]
+Estado: Design Phase (v1.0)
+Target: Senior Portfolio 2025-2026
+________________
+
+
+1. Executive Summary & Problem Statement
+Smart-Adapt CV aborda la ineficiencia en el proceso de aplicación laboral mediante la automatización del análisis de vacantes y la reestructuración de currículums. El desafío técnico principal reside en la orquestación de modelos de lenguaje (LLM) bajo un esquema híbrido que garantice la privacidad de datos (Local-First) sin sacrificar la potencia analítica (Cloud-Scale).
+3 Desafíos Técnicos Críticos
+1. Agnosticismo de Modelos: Implementar un middleware que permita conmutar entre Google Gemini y modelos locales (Ollama) sin afectar la lógica de negocio.
+2. Fidelidad ATS (Applicant Tracking Systems): Garantizar que el PDF generado sea 100% parseable por máquinas, evitando el uso de Canvas o formatos de imagen.
+3. Análisis Semántico de Brechas: Pasar de una búsqueda por palabras clave a un motor que identifique "Skill Gaps" contextuales.
+________________
+
+
+2. Tech Stack Proposed
+Capa
+	Tecnología
+	Versión / Variante
+	Razón de Selección
+	Frontend
+	Next.js 15
+	App Router
+	Estándar de industria por su eficiencia con Server Components.
+	Backend API
+	FastAPI
+	Python 3.12
+	Nativo para IA; ecosistema superior para manipulación de datos y PDFs.
+	IA Orchestrator
+	LangChain
+	v0.3+
+	Permite crear flujos RAG y manejar memoria de conversación de forma modular.
+	Database
+	PostgreSQL
+	v16 + pgvector
+	Almacenamiento relacional + soporte nativo para búsqueda vectorial semántica.
+	PDF Engine
+	WeasyPrint
+	Jinja2 Templates
+	Generación de PDFs basada en HTML/CSS, superior para compatibilidad ATS.
+	Runtime Local
+	Ollama
+	GLM-4.7 / Llama 3
+	Estándar actual para inferencia local con baja latencia.
+	Infra/DevOps
+	Docker + Vercel
+	Multi-stage builds
+	Portabilidad total y despliegue continuo (CI/CD).
+	________________
+
+
+3. System Architecture
+3.1 Patrón de Arquitectura: Monolito Modular
+Se opta por un monolito modular para reducir la latencia de red y simplificar el despliegue inicial, manteniendo una separación estricta de dominios:
+* Module Ingestion: ETL para PDF a JSON.
+* Module Intelligence: Orquestador de LLM (Strategy Pattern).
+* Module Generator: Motor de renderizado de documentos.
+3.2 Diagrama de Flujo de Datos
+Fragmento de código
+graph LR
+    A[Perfil Maestro JSON] --> C[AI Orchestrator]
+    B[Vacante TXT] --> C
+    C --> D{Provider?}
+    D -- Cloud --> E[Gemini API]
+    D -- Local --> F[Ollama / GLM-4.7]
+    E & F --> G[Reporte de Gaps]
+    G --> H[Jinja2 + WeasyPrint]
+    H --> I[CV Optimizado PDF]
+
+
+________________
+
+
+4. Justificación de Decisiones Técnicas (The "Selling Points")
+4.1 Por qué FastAPI sobre Node.js
+Para un proyecto de IA, Python es innegociable. FastAPI permite tipado estático (Pydantic), lo cual es crucial para manejar los esquemas de JSON complejos que requiere el PRD (Perfil Maestro). Los reclutadores valoran el uso de la herramienta correcta para el problema correcto.
+4.2 Búsqueda Semántica con pgvector
+En lugar de una base de datos vectorial externa costosa, usamos un plugin de Postgres. Esto demuestra seniority al evitar la sobreingeniería y mantener la consistencia de datos en una sola fuente de verdad.
+4.3 Generación de PDF vía HTML/CSS
+La mayoría de los desarrolladores junior usan jsPDF o Canvas, que rompen el orden de lectura de los ATS. Al usar WeasyPrint, demostramos que entendemos la accesibilidad y los requisitos técnicos de los sistemas de reclutamiento modernos.
+________________
+
+
+5. Road-map de Implementación (MVP a Senior)
+1. Fase 1 (Core): CLI en Python para parsear CVs y conectarse a Gemini/Ollama.
+2. Fase 2 (Persistence): Implementación de PostgreSQL para guardar perfiles y versiones de CV.
+3. Fase 3 (Frontend): Dashboard en Next.js para comparar visualmente el CV original vs. el optimizado.
+4. Fase 4 (Advanced): Implementación de Edge Functions para el análisis rápido de vacantes.
+________________
+
+
+6. Key Selling Points para la Entrevista
+* "Diseñé una arquitectura agnóstica al proveedor": Explica cómo el patrón Strategy permite cambiar de un modelo de $20/mes a uno local gratuito sin reescribir una sola línea de lógica de negocio.
+* "Prioricé la integridad semántica": Menciona cómo el uso de embeddings y búsqueda vectorial (pgvector) permite una personalización que va más allá de simples 'Keywords', atacando directamente la intención de la vacante.
+* "Optimización de Costos e Infraestructura": Defiende el uso de un monolito modular y Postgres vectorial como una decisión estratégica para reducir el TCO (Total Cost of Ownership) del producto.

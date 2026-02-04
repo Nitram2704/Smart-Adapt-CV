@@ -1,0 +1,13 @@
+{
+    "name": "POS System",
+    "description": "Point of Sale system for retail management, fully integrated with WooCommerce to synchronize inventory and sales with a live e-commerce website.",
+    "stack": [
+        "Java",
+        "Spring Boot",
+        "MySQL",
+        "WooCommerce API",
+        "REST"
+    ],
+    "github_url": "https://github.com/samuelmontoya1314/System-POS",
+    "impact_metrics": "Processed over 1,000 transactions daily with 99.9% uptime."
+}

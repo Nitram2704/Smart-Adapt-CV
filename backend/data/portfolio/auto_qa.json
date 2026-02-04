@@ -1,0 +1,12 @@
+{
+    "name": "AutoQA",
+    "description": "An agentic self-healing test automation tool using AI to analyze failures and generate fixes.",
+    "stack": [
+        "TypeScript",
+        "Playwright",
+        "Gemini API",
+        "Node.js"
+    ],
+    "github_url": "https://github.com/Nitram2704/AutoQA",
+    "impact_metrics": "Reduced test maintenance time by 70% through automated self-healing loops."
+}

@@ -1,0 +1,10 @@
+{
+    "name": "Finanzas Personales",
+    "description": "A comprehensive personal finance tracker with Google Sheets synchronization and budget management.",
+    "stack": [
+        "Python",
+        "Pandas",
+        "Google Sheets API"
+    ],
+    "impact_metrics": "Automated financial tracking for over 50 users with real-time budget alerts."
+}

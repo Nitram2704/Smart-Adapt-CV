@@ -1,0 +1,11 @@
+{
+    "name": "PascualBet",
+    "description": "A casino and betting platform developed for Pascual Bravo institution simulation or entertainment.",
+    "stack": [
+        "JavaScript",
+        "React",
+        "Node.js"
+    ],
+    "github_url": "https://github.com/samuelmontoya1314/Casino-pascualbet",
+    "impact_metrics": "Simulated real-time betting environment with secure transaction logic."
+}

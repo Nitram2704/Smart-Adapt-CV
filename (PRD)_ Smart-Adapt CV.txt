@@ -1,0 +1,82 @@
+﻿PRODUCT REQUIREMENTS DOCUMENT (PRD): Smart-Adapt CV
+1. Resumen Ejecutivo
+* Visión del Producto: Smart-Adapt CV es un motor de optimización de carrera diseñado para automatizar la personalización masiva de currículums. A diferencia de los editores tradicionales, utiliza un enfoque de IA Híbrida para transformar una "Fuente de Verdad" (Perfil Maestro) en documentos optimizados para ATS, permitiendo al usuario elegir entre potencia en la nube o privacidad local.
+* Público Objetivo: Profesionales del sector tecnológico y corporativo que aplican a múltiples vacantes y necesitan adaptar su propuesta de valor de forma quirúrgica sin perder horas en edición manual.
+* Propuesta de Valor Única: Capacidad de procesamiento híbrido (Cloud/Local) y un motor de selección dinámica de proyectos basado en análisis semántico de brechas (Skill Gaps).
+2. Alcance del Proyecto (Scope)
+* In-Scope (MVP):
+   * Parser de CV original (PDF) a esquema Maestro (JSON).
+   * Módulo de ingesta de vacantes (.txt).
+   * Orquestador de IA con soporte para Gemini 2.5 Flash y GLM-4.7 (Local).
+   * Generación de PDF vía Jinja2/WeasyPrint compatible con ATS.
+   * Interfaz de línea de comandos (CLI) o Script principal de ejecución.
+* Out-of-Scope:
+   * Interfaz web (GUI) compleja (se reserva para v2).
+   * Sincronización con perfiles de LinkedIn en tiempo real.
+   * Envío automático de correos a reclutadores.
+3. Requisitos Funcionales (User Stories)
+ID
+	Historia de Usuario
+	Criterios de Aceptación (Gherkin)
+	US.1
+	Como usuario, quiero cargar mi CV actual para generar mi Perfil Maestro automáticamente.
+	Dado un archivo PDF válido, Cuando se ejecuta el extractor.py, Entonces se genera un archivo mi_perfil.json que mapea correctamente experiencia, educación y stacks.
+	US.2
+	Como candidato, quiero analizar una vacante para conocer mis Skill Gaps.
+	Dado un archivo vacante.txt, Cuando el ai_engine.py procesa el texto, Entonces devuelve un JSON con Match Score y palabras clave faltantes.
+	US.3
+	Como usuario preocupado por la privacidad, quiero procesar mis datos localmente.
+	Dado que el usuario selecciona el provider "Local", Cuando se inicia el proceso, Entonces el sistema debe conectar con GLM-4.7 vía Ollama sin enviar datos a APIs externas.
+	US.4
+	Como postulante, quiero un CV optimizado para ATS.
+	Dado el Perfil Maestro y el análisis de la vacante, Cuando se genera el PDF, Entonces el texto debe ser seleccionable, sin tablas complejas ni gráficos que bloqueen lectores automáticos.
+	4. Especificaciones Técnicas (La Arquitectura)
+Tech Stack Recomendado
+* Lenguaje: Python 3.10+ (Por su ecosistema de IA y manejo de documentos).
+* Procesamiento de Documentos: PyMuPDF (lectura) y WeasyPrint (generación).
+* Motor de Plantillas: Jinja2 (separación de datos y diseño).
+* IA Cloud: Google Gemini 2.5 Flash (Gratuito, ventana de contexto amplia).
+* IA Local: GLM-4.7 o Llama 3 vía Ollama (Inferencia local optimizada).
+Modelo de Datos (Schema - mi_perfil.json)
+JSON
+{
+  "basic_info": { "name": "string", "email": "string", "linkedin": "url" },
+  "summary": "string",
+  "skills": { "languages": [], "frameworks": [], "tools": [] },
+  "experience": [
+    {
+      "company": "string",
+      "role": "string",
+      "duration": "string",
+      "highlights": ["string"],
+      "stack": ["string"]
+    }
+  ],
+  "projects": [
+    { "name": "string", "description": "string", "impact_metrics": "string" }
+  ]
+}
+
+
+Estructura de la Lógica (AI Orchestrator)
+El sistema debe implementar el patrón Strategy para el cambio de modelos:
+* POST /analyze_gap: Envía Perfil Maestro + Vacante -> Retorna Recomendaciones.
+* POST /generate_content: Envía Perfil Maestro + Recomendaciones -> Retorna JSON filtrado para el CV.
+Seguridad
+* Local-First: Los archivos en la carpeta /inputs/ y /outputs/ nunca deben subirse a repositorios públicos (incluir en .gitignore).
+* Secret Management: Uso de variables de entorno (.env) para la API Key de Gemini.
+5. Requisitos No Funcionales
+* Rendimiento: El proceso completo de generación (Análisis + Render) no debe superar los 15 segundos en modo Cloud y 45 segundos en modo Local (dependiendo del hardware).
+* Escalabilidad: El ai_engine.py debe ser agnóstico al modelo (fácil integración de GPT-4o o Claude 3 en el futuro).
+* Calidad del PDF: El documento final debe pasar el test de lectura de pdftotext sin pérdida de orden lógico.
+6. UX/UI y Flujo del Usuario (Happy Path)
+1. Carga: El usuario coloca su cv_original.pdf en /inputs/.
+2. Inicialización: Ejecuta el script de "Bootstrap" para crear su mi_perfil.json.
+3. Configuración de Aplicación: El usuario copia el texto de una oferta laboral en vacante.txt.
+4. Ejecución: El usuario corre python main.py --provider local.
+5. Revisión: El sistema genera reporte_gap.json. El usuario lo revisa (opcional).
+6. Entrega: El sistema exporta cv_optimizado.pdf listo para enviar.
+7. Casos Borde (Edge Cases)
+1. Vacante en Idioma Diferente: Si el Perfil Maestro está en Español y la vacante en Inglés, el ai_engine debe detectar el idioma y preguntar al usuario si desea traducir el CV final automáticamente.
+2. Exceso de Contexto: Si la descripción de la vacante es extremadamente larga (>10k tokens), el ETL Layer debe realizar un resumen extractivo previo para evitar latencia o errores de API.
+3. Fallo de Conexión en Cloud: Si el provider es Gemini y falla la conexión, el sistema debe ofrecer un "Graceful Fallback" sugiriendo cambiar al modelo Local si Ollama está detectado.

@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+python-multipart
+pymupdf
+weasyprint
+jinja2
+google-generativeai
+requests
+python-dotenv

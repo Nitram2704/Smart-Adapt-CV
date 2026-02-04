@@ -1,0 +1,10 @@
+{
+    "name": "App Fitness",
+    "description": "Mobile application focused on health tracking, workout routines, and fitness progress monitoring.",
+    "stack": [
+        "React Native",
+        "Expo",
+        "Firebase"
+    ],
+    "impact_metrics": "Increased user engagement through gamified fitness challenges."
+}
