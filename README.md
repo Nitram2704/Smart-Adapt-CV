@@ -63,8 +63,11 @@
     ```
     *Create a `.env` file in `/backend`:*
     ```env
-    GEMINI_API_KEY=your_key_here
+    # ⚠️ IMPORTANT: Get your own API Key from https://aistudio.google.com/
+    GOOGLE_API_KEY=your_google_api_key_here
+    
     OLLAMA_MODEL=llama3.2
+    PORT=8000
     ```
 
 3.  **Frontend Setup**
