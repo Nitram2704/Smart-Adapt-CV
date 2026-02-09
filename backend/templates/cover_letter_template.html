@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="{{ language | default('es') }}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cover Letter - {{ candidate_info.name }}</title>
+    <style>
+        :root {
+            --primary-bg: #ffffff;
+            --sidebar-bg: #eceff2;
+            --banner-bg: #d1dae3;
+            --text-main: #333333;
+            --text-light: #555555;
+            --accent: #2c3e50;
+            --border: #cccccc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-main);
+            background: var(--primary-bg);
+            line-height: 1.6;
+            font-size: 11pt;
+            font-weight: 400;
+        }
+
+        @page {
+            size: A4;
+            margin: 25mm 25mm;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 210mm;
+            background: white;
+            /* Padding is handled by @page for print, but helpful for view */
+        }
+
+        .header {
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--banner-bg);
+            padding-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .candidate-name {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .candidate-title {
+            font-size: 1.1em;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .contact-info {
+            font-size: 0.9em;
+            color: var(--text-light);
+            text-align: right;
+        }
+
+        .contact-info div {
+            margin-bottom: 3px;
+        }
+
+        .letter-meta {
+            margin-bottom: 30px;
+            font-size: 1em;
+        }
+
+        .date {
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .recipient {
+            margin-bottom: 20px;
+        }
+
+        .recipient strong {
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .content {
+            text-align: justify;
+            margin-bottom: 40px;
+        }
+
+        .content p {
+            margin-bottom: 15px;
+        }
+
+        .sign-off {
+            margin-top: 40px;
+        }
+
+        .sign-off .name {
+            margin-top: 50px;
+            /* Space for signature */
+            font-weight: 700;
+            color: var(--accent);
+            border-top: 1px solid var(--border);
+            display: inline-block;
+            padding-top: 10px;
+            padding-right: 50px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-container">
+        <!-- Header based on CV style but cleaner for letter -->
+        <header class="header">
+            <div>
+                <h1 class="candidate-name">{{ candidate_info.name }}</h1>
+                <div class="candidate-title">{{ candidate_info.title }}</div>
+            </div>
+            <div class="contact-info">
+                <div>{{ candidate_info.email }}</div>
+                <div>{{ candidate_info.phone }}</div>
+                {% if candidate_info.linkedin_url %}
+                <div>{{ candidate_info.linkedin_url }}</div>
+                {% endif %}
+            </div>
+        </header>
+
+        <div class="letter-meta">
+            <div class="date">{{ date }}</div>
+
+            <div class="recipient">
+                <strong>{{ recipient_info.hiring_manager }}</strong>
+                <div>{{ recipient_info.company_name }}</div>
+            </div>
+        </div>
+
+        <div class="content">
+            {{ content_body | safe }}
+        </div>
+
+        <div class="sign-off">
+            <div class="sincere">{{ "Sincerely," if language == 'en' else "Atentamente," }}</div>
+            <div class="name">{{ candidate_info.name }}</div>
+        </div>
+    </div>
+</body>
+
+</html>
