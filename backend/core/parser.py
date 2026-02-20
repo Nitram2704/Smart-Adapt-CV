@@ -10,6 +10,17 @@ def extract_text_from_pdf(pdf_path: str) -> str:
     for page in doc:
         text += page.get_text()
     print(f"DEBUG: Extracted {len(text)} characters from PDF.")
+    # Debug cleanup
+    print(f"DEBUG: Raw text length: {len(text)}")
+    
+    # The following lines are commented out as the functions 'extract_basic_info' and 'extract_experience_section' are not defined in the provided context.
+    # If these functions are intended to be added, they must be defined elsewhere.
+    # # 2. Extract sections using Regex
+    # basic_info = extract_basic_info(text)
+    # print(f"DEBUG: Parser extracted basic_info: {basic_info}")
+    
+    # experience = extract_experience_section(text)
+    # print(f"DEBUG: Parser extracted experience entries: {len(experience)}")
     return text
 
 def parse_text_to_master_profile(text: str, ai_client) -> Dict:
@@ -51,13 +62,16 @@ def parse_text_to_master_profile(text: str, ai_client) -> Dict:
         "databases": [], 
         "cloud": [], 
         "architecture": [], 
-        "product": [] 
+        "project_management": [] 
       }},
       "experience": [
         {{ "company": "...", "role": "...", "duration": "...", "highlights": ["bullet points..."], "stack": ["tech used..."] }}
       ],
       "projects": [
         {{ "name": "Project Name", "description": "What was built...", "impact_metrics": "Results or technical scale..." }}
+      ],
+      "certifications": [
+        {{ "name": "...", "issuer": "...", "year": "..." }}
       ],
       "education": [
         {{ "institution": "...", "degree": "...", "year": "..." }}
@@ -93,20 +107,26 @@ def parse_text_to_master_profile(text: str, ai_client) -> Dict:
             
         return result
     except Exception as e:
-        print(f"Failed to parse CV JSON: {e}")
-        print(f"Raw Response: {response_text}")
+        import traceback
+        print(f"CRITICAL ERROR in parse_text_to_master_profile: {type(e).__name__}: {e}")
+        print(traceback.format_exc())
+        print(f"Raw Response Snippet: {str(response_text)[:500]}")
         
-        if "ERROR_QUOTA_EXCEEDED" in response_text or "ERROR_ALL_PROVIDERS_FAILED" in response_text:
-            error_msg = "Quota Hit (Auto-Switching...)"
-            summary_msg = f"Gemini API quota reached. {response_text}. Attempting fallback..."
-            if "Local Ollama Success" in response_text: # This won't be here since it returns the JSON, but just in case
-                error_msg = "Extracted via Local AI"
-            summary_msg = "Your Gemini API limit has been reached. Please wait 60 seconds or use a local model if available."
+        error_msg = "Error Parsing CV"
+        summary_msg = "There was an error parsing your CV. Please ensure it's a valid PDF."
+        
+        if response_text:
+            if "ERROR_QUOTA_EXCEEDED" in response_text or "QUOTA" in response_text.upper():
+                error_msg = "Quota Hit (Auto-Switching...)"
+                summary_msg = "API quota reached. Please wait 60 seconds or use a local model."
+            elif "ERROR_ALL_PROVIDERS_FAILED" in response_text:
+                error_msg = "Service Unavailable"
+                summary_msg = "All AI providers failed. Check your internet or API keys."
             
         return {
             "basic_info": {"name": error_msg, "email": ""},
             "summary": summary_msg,
-            "skills": {"languages": [], "frameworks": [], "tools": []},
+            "skills": {"backend": [], "frontend": [], "databases": [], "cloud": [], "architecture": [], "project_management": []},
             "experience": [],
             "projects": []
         }

@@ -20,5 +20,16 @@ def load_portfolio_projects() -> List[Dict]:
                     projects.append(project_data)
             except Exception as e:
                 print(f"Error loading {filename}: {e}")
-    
     return projects
+
+def load_certifications() -> List[Dict]:
+    """Loads certifications from the certifications.json file."""
+    path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "certifications.json")
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error loading certifications: {e}")
+        return []

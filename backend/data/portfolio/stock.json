@@ -1,0 +1,11 @@
+{
+    "name": "Stock Analysis Dashboard",
+    "description": "A real-time financial dashboard built with <b>React</b> and <b>Python</b>.",
+    "impact_metrics": "Reduced analysis time by 40%",
+    "tech_stack": [
+        "React",
+        "Python",
+        "FastAPI",
+        "Tailwind CSS"
+    ]
+}

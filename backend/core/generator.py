@@ -12,7 +12,13 @@ env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 
 def render_cv_html(data: dict) -> str:
     """Renders the CV data into HTML using Jinja2."""
+    print(f"DEBUG: Rendering CV with keys: {list(data.keys())}")
     template = env.get_template("cv_template.html")
+    return template.render(**data)
+
+def render_cover_letter_html(data: dict) -> str:
+    """Renders the Cover Letter data into HTML using Jinja2."""
+    template = env.get_template("cover_letter_template.html")
     return template.render(**data)
 
 def generate_pdf(html_content: str, output_path: str):

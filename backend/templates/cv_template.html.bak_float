@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="{{ language | default('es') }}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ basic_info.name }} - CV</title>
+    <style>
+        /* No external font imports to ensure stability */
+
+        :root {
+            --primary-bg: #ffffff;
+            --sidebar-bg: #eceff2;
+            --banner-bg: #d1dae3;
+            --text-main: #333333;
+            --text-light: #444444;
+            /* Slightly darker for better contrast */
+            --accent: #2c3e50;
+            --border: #cccccc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            /* System fonts: Segoe UI (Windows), Helvetica/Arial (Safe fallback) */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-main);
+            background: var(--primary-bg);
+            line-height: 1.4;
+            font-size: 10pt;
+            /* Reset all rendering tweaks to default */
+            font-weight: 400;
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        /* Prevent unwanted page breaks between header and content */
+        .page-container {
+            width: 210mm;
+            min-height: 297mm;
+            position: relative;
+            background: white;
+        }
+
+        /* Header Banner - Now part of the flow but tightly integrated */
+        .header {
+            background-color: var(--banner-bg);
+            padding: 25px 20px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            height: 35mm;
+            position: relative;
+            /* Removed overflow: hidden to prevent text clipping */
+            page-break-after: avoid;
+        }
+
+        .header::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 33%;
+            background: white;
+            border-bottom-right-radius: 40mm 40mm;
+        }
+
+        .header-content {
+            text-align: right;
+            z-index: 1;
+            margin-right: 40px;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        .header h2 {
+            font-size: 1em;
+            font-weight: 400;
+            color: var(--text-light);
+            margin-top: 3px;
+        }
+
+        /* Container for Sidebar and Main */
+        .main-body {
+            width: 100%;
+            /* FLEXBOX REMOVED: Caused rendering issues on Windows without GTK3 */
+            /* display: flex; */
+            overflow: hidden;
+            /* Clear floats */
+        }
+
+        /* Sidebar - Left Column */
+        .sidebar {
+            width: 30%;
+            /* Slightly smaller to prevent wrapping */
+            float: left;
+            /* Old-school robust layout */
+            background-color: var(--sidebar-bg);
+            padding: 15px 15px;
+            /* display: flex; -> Removed */
+            /* flex-direction: column; -> Removed */
+
+            /* Ensure it fills height manually if needed, but float usually suffices for content */
+            min-height: 1000px;
+            /* Force height to look like a sidebar */
+        }
+
+        .section-sidebar-title {
+            font-size: 1em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 3px;
+            margin-bottom: 8px;
+            color: var(--accent);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+            font-size: 0.8em;
+        }
+
+        .contact-icon {
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .social-icons-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 5px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .social-link {
+            text-decoration: none;
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 0.8em;
+            display: inline-block;
+        }
+
+        .sidebar-list {
+            list-style: none;
+            font-size: 0.8em;
+        }
+
+        .sidebar-list li {
+            margin-bottom: 8px;
+            page-break-inside: avoid;
+        }
+
+        .tool-group {
+            margin-bottom: 8px;
+            page-break-inside: avoid;
+        }
+
+        .tool-group-label {
+            font-weight: 700;
+            font-size: 0.85em;
+            display: block;
+        }
+
+        /* Main Content - Right Column */
+        .main-content {
+            width: 65%;
+            /* Leave 5% gap */
+            float: right;
+            padding: 20px 25px;
+            /* display: flex; -> Removed */
+            /* flex-direction: column; -> Removed */
+        }
+
+        .section-main-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            text-transform: none;
+            color: var(--accent);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+        }
+
+        .profile-text {
+            font-size: 0.85em;
+            text-align: justify;
+            color: var(--text-main);
+            page-break-inside: avoid;
+        }
+
+        .experience-item {
+            margin-bottom: 12px;
+            page-break-inside: avoid;
+        }
+
+        .exp-header {
+            font-weight: 700;
+            font-size: 0.95em;
+            margin-bottom: 1px;
+        }
+
+        .exp-date {
+            font-size: 0.8em;
+            color: var(--text-light);
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .exp-detail {
+            font-size: 0.8em;
+        }
+
+        .exp-detail p {
+            margin-bottom: 2px;
+        }
+
+        .references {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            page-break-inside: avoid;
+        }
+
+        .ref-item {
+            font-size: 0.75em;
+            width: 48%;
+        }
+
+        .ref-item strong {
+            display: block;
+            font-size: 1.1em;
+            margin-bottom: 2px;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-container">
+        <header class="header">
+            <div class="header-content">
+                <h1>{{ basic_info.name }}</h1>
+                <h2>{{ basic_info.title | default("Software Engineer") }}</h2>
+            </div>
+        </header>
+
+        <div class="main-body">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <!-- Contact -->
+                <section>
+                    <div class="contact-item">
+                        <span class="contact-icon">📞</span>
+                        <span>{{ basic_info.phone | default("+57 30426212096") }}</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">@</span>
+                        <span>{{ basic_info.email }}</span>
+                    </div>
+                    <div class="social-icons-row">
+                        {% if basic_info.portfolio_url %}
+                        <a href="{{ basic_info.portfolio_url }}" class="social-link">Portfolio</a>
+                        {% endif %}
+                        {% if basic_info.linkedin_url %}
+                        <a href="{{ basic_info.linkedin_url }}" class="social-link">LinkedIn</a>
+                        {% endif %}
+                        {% if basic_info.github_url %}
+                        <a href="{{ basic_info.github_url }}" class="social-link">GitHub</a>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <!-- Education -->
+                <section>
+                    <h3 class="section-sidebar-title">{{ "EDUCATION" if language == "en" else "EDUCACIÓN" }}</h3>
+                    <ul class="sidebar-list">
+                        {% for edu in education %}
+                        <li>
+                            <strong>{{ edu.degree }}</strong><br>
+                            {{ edu.institution }}<br>
+                            <span style="color:var(--text-light)">{{ edu.year }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+
+                <!-- Certifications (New) -->
+                {% if certifications %}
+                <section>
+                    <h3 class="section-sidebar-title">{{ "CERTIFICATIONS" if language == "en" else "CERTIFICACIONES" }}
+                    </h3>
+                    <ul class="sidebar-list">
+                        {% for cert in certifications %}
+                        <li>
+                            <strong>{{ cert.name }}</strong><br>
+                            {{ cert.issuer | default(cert.organization) }}<br>
+                            <span style="color:var(--text-light)">{{ cert.year | default(cert.date) }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+                {% endif %}
+
+                <!-- Tools -->
+                <section>
+                    <h3 class="section-sidebar-title">{{ "TOOLS" if language == "en" else "HERRAMIENTAS" }}</h3>
+                    <div class="sidebar-list">
+                        {% if skills.backend %}
+                        <div class="tool-group">
+                            <span class="tool-group-label">Backend:</span>
+                            {{ skills.backend | join(', ') }}
+                        </div>
+                        {% endif %}
+                        {% if skills.frontend %}
+                        <div class="tool-group">
+                            <span class="tool-group-label">Frontend:</span>
+                            {{ skills.frontend | join(', ') }}
+                        </div>
+                        {% endif %}
+                        {% if skills.databases %}
+                        <div class="tool-group">
+                            <span class="tool-group-label">Databases:</span>
+                            {{ skills.databases | join(', ') }}
+                        </div>
+                        {% endif %}
+                        {% if skills.cloud %}
+                        <div class="tool-group">
+                            <span class="tool-group-label">Cloud:</span>
+                            {{ skills.cloud | join(', ') }}
+                        </div>
+                        {% endif %}
+                        {% if skills.architecture %}
+                        <div class="tool-group">
+                            <span class="tool-group-label">{{ "Architecture" if language == "en" else "Arquitectura"
+                                }}:</span>
+                            {{ skills.architecture | join(', ') }}
+                        </div>
+                        {% endif %}
+                        {% if skills.project_management %}
+                        <div class="tool-group">
+                            <span class="tool-group-label">{{ "Project Management" if language == "en" else "Gestión de
+                                Proyectos" }}:</span>
+                            {{ skills.project_management | join(', ') }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <!-- Languages -->
+                <section>
+                    <h3 class="section-sidebar-title">{{ "LANGUAGES" if language == "en" else "IDIOMAS" }}</h3>
+                    <div style="display:flex; flex-direction:column; gap:5px; font-size:0.8em;">
+                        {% for lang in languages %}
+                        <span>{{ lang.language }}: {{ lang.level }}</span>
+                        {% endfor %}
+                    </div>
+                </section>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Profile -->
+                <section>
+                    <h3 class="section-main-title">{{ "Professional summary" if language == "en" else "Perfil
+                        profesional" }}</h3>
+                    <p class="profile-text">{{ summary }}</p>
+                </section>
+
+                <!-- Experience -->
+                <section>
+                    <h3 class="section-main-title">{{ "PROJECT EXPERIENCE" if language == "en" else "EXPERIENCIA EN
+                        PROYECTOS" }}</h3>
+                    {% for job in experience %}
+                    <div class="experience-item">
+                        <div class="exp-header">{{ job.role }} | {{ job.company }}</div>
+                        <span class="exp-date">{{ job.duration }}</span>
+                        <div class="exp-detail">
+                            {% if job.highlights %}
+                            {% for highlight in job.highlights %}
+                            <p>• {{ highlight | safe }}</p>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </section>
+
+                <!-- References -->
+                <section style="margin-top: auto; padding-top: 15px;">
+                    <h3 class="section-main-title">{{ "REFERENCES" if language == "en" else "REFERENCIAS" }}</h3>
+                    <div class="references">
+                        <div class="ref-item">
+                            <strong>Ledi Urrego T.</strong>
+                            {{ "System Engineering" if language == "en" else "Ingenieria en sistemas" }}<br>
+                            Phone: +57 3017676947<br>
+                            Email: ledi.urrego@sactrack.com
+                        </div>
+                        <div class="ref-item">
+                            <strong>Monica Quintero</strong>
+                            {{ "Financial Engineer" if language == "en" else "Ingeniera Financiera" }}<br>
+                            Phone: +57 3102583867<br>
+                            Email: monica.quintero@sdsline.com
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

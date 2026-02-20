@@ -1,0 +1,26 @@
+[
+    {
+        "name": "Microsoft Azure Fundamentals (AZ-900)",
+        "issuer": "Microsoft",
+        "year": "2026",
+        "description": "Validation of foundational knowledge of cloud services and how those services are provided with Microsoft Azure."
+    },
+    {
+        "name": "Jira Software: Advanced Management & Configuration",
+        "issuer": "Atlassian",
+        "year": "2026",
+        "description": "Advanced training in managing and configuring Jira Software projects."
+    },
+    {
+        "name": "Scrum Open Assessment (Expert Level)",
+        "issuer": "Scrum.org",
+        "year": "2026",
+        "description": "Demonstrated expert-level knowledge of the Scrum framework."
+    },
+    {
+        "name": "Professional Scrum Master I (PSM I)",
+        "issuer": "Scrum.org",
+        "year": "2026",
+        "description": "Validation of fundamental Scrum knowledge and its application."
+    }
+]

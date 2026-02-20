@@ -11,8 +11,116 @@ class LLMProvider(ABC):
     def generate(self, prompt: str, system_instruction: Optional[str] = None) -> str:
         pass
 
+class GroqProvider(LLMProvider):
+    def __init__(self, api_key: str, model: str = "llama-3.3-70b-versatile"):
+        self.api_key = api_key
+        self.model = model
+        self.url = "https://api.groq.com/openai/v1/chat/completions"
+
+    def generate(self, prompt: str, system_instruction: Optional[str] = None) -> str:
+        messages = []
+        if system_instruction:
+            messages.append({"role": "system", "content": system_instruction})
+        messages.append({"role": "user", "content": prompt})
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": 0.1,
+            "response_format": {"type": "json_object"} if "JSON" in prompt else None
+        }
+
+        try:
+            response = requests.post(self.url, headers=headers, json=payload)
+            if response.status_code == 429:
+                return "ERROR_QUOTA_EXCEEDED: Groq rate limit reached."
+            response.raise_for_status()
+            return response.json()["choices"][0]["message"]["content"]
+        except Exception as e:
+            return f"ERROR_PROVIDER_FAILED: {str(e)}"
+
+class OpenRouterProvider(LLMProvider):
+    def __init__(self, api_key: str, model: str = None):
+        self.api_key = api_key
+        # List of free models to try in order
+        self.free_models = [
+            "deepseek/deepseek-r1-0528:free", # User favorite
+            "meta-llama/llama-3.3-70b-instruct:free",
+            "mistralai/mistral-small-3.1-24b-instruct:free",
+            "google/gemma-3-27b-it:free",
+            "liquid/lfm-2.5-1.2b-instruct:free",
+            "microsoft/phi-3-medium-128k-instruct:free",
+        ]
+        # If a specific model is requested via env, put it first
+        env_model = os.getenv("OPENROUTER_MODEL")
+        if env_model:
+            self.free_models.insert(0, env_model)
+        
+        self.url = "https://openrouter.ai/api/v1/chat/completions"
+
+    def generate(self, prompt: str, system_instruction: Optional[str] = None) -> str:
+        messages = []
+        if system_instruction:
+            messages.append({"role": "system", "content": system_instruction})
+        messages.append({"role": "user", "content": prompt})
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://smart-adapt-cv.com", 
+            "X-Title": "Smart Adapt CV"
+        }
+        
+        errors = []
+        
+        for model in self.free_models:
+            print(f"DEBUG: OpenRouter trying model: {model}")
+            
+            # Construct payload - be conservative to avoid 400s
+            payload = {
+                "model": model,
+                "messages": messages,
+                "temperature": 0.1,
+            }
+            # Only add response_format for models known to support it well via OpenRouter, 
+            # OR if we are getting 400s, it's safer to omit it and rely on the system prompt.
+            # Many free models on OpenRouter do NOT support 'json_object' mode.
+            # We will omit it to maximize compatibility.
+            
+            try:
+                # 120s timeout for slower "thinking" models like Deepseek R1
+                response = requests.post(self.url, headers=headers, json=payload, timeout=120)
+                
+                if response.status_code == 429:
+                    print(f"DEBUG: Model {model} rate limited (429). Trying next...")
+                    errors.append(f"{model}: 429 Quota Exceeded")
+                    continue
+                    
+                if response.status_code == 503 or response.status_code == 502:
+                     print(f"DEBUG: Model {model} overloaded ({response.status_code}). Trying next...")
+                     errors.append(f"{model}: {response.status_code} Overloaded")
+                     continue
+
+                if response.status_code == 400 or response.status_code == 404:
+                    print(f"DEBUG: Model {model} error ({response.status_code}): {response.text}")
+                    errors.append(f"{model}: {response.status_code} {response.text}")
+                    continue
+
+                response.raise_for_status()
+                return response.json()["choices"][0]["message"]["content"]
+            except Exception as e:
+                print(f"DEBUG: Model {model} failed: {e}")
+                errors.append(f"{model}: {str(e)}")
+                continue
+
+        return f"ERROR_PROVIDER_FAILED: All OpenRouter models failed. Details: {'; '.join(errors)}"
+
 class OllamaProvider(LLMProvider):
-    def __init__(self, model: str = "glm4"):
+    def __init__(self, model: str = "llama3.2"):
         self.url = "http://localhost:11434/api/generate"
         self.model = model
 
@@ -30,156 +138,366 @@ class OllamaProvider(LLMProvider):
             response.raise_for_status()
             return response.json().get("response", "")
         except Exception as e:
-            return f"Error connecting to Ollama: {str(e)}"
+            return f"ERROR_PROVIDER_FAILED: Ollama offline. {str(e)}"
 
 class GeminiProvider(LLMProvider):
     def __init__(self, api_key: str):
         genai.configure(api_key=api_key)
         self.model_20 = genai.GenerativeModel('gemini-2.0-flash')
         self.model_15 = genai.GenerativeModel('gemini-1.5-flash')
-        self.ollama_model = os.getenv("OLLAMA_MODEL", "llama3.2")
 
     def generate(self, prompt: str, system_instruction: Optional[str] = None) -> str:
         full_prompt = f"{system_instruction}\n\n{prompt}" if system_instruction else prompt
-        
-        # 1. Try Gemini 2.0 Flash
         try:
-            print("DEBUG: Attempting generation with gemini-2.0-flash...", flush=True)
             response = self.model_20.generate_content(full_prompt)
-            print("DEBUG: Gemini 2.0 Success!", flush=True)
             return response.text
         except Exception as e:
-            error_str = str(e)
-            print(f"DEBUG: Gemini 2.0 Error: {error_str}", flush=True)
-            
-            if "429" in error_str or "ResourceExhausted" in error_str:
-                # 2. Fallback to Gemini 1.5 Flash
-                try:
-                    print("DEBUG: 2.0 Quota exceeded. Falling back to gemini-1.5-flash...", flush=True)
-                    response = self.model_15.generate_content(full_prompt)
-                    print("DEBUG: Gemini 1.5 Success!", flush=True)
-                    return response.text
-                except Exception as e2:
-                    error_str2 = str(e2)
-                    print(f"DEBUG: Gemini 1.5 Fallback Error: {error_str2}", flush=True)
-                    
-                    # 3. Final Fallback to Ollama (Local)
-                    try:
-                        print(f"DEBUG: Gemini Quota totally exhausted. Falling back to Local Ollama ({self.ollama_model})...", flush=True)
-                        import requests
-                        response = requests.post(
-                            "http://localhost:11434/api/generate",
-                            json={
-                                "model": self.ollama_model,
-                                "prompt": full_prompt,
-                                "stream": False
-                            }
-                        )
-                        result = response.json()
-                        print("DEBUG: Local Ollama Success!", flush=True)
-                        return result.get("response", "")
-                    except Exception as e3:
-                        print(f"DEBUG: Local Ollama Fallback Error: {str(e3)}", flush=True)
-                        return f"ERROR_ALL_PROVIDERS_FAILED_V4: {error_str2}. Local: {str(e3)}"
-            
-            return f"Error connecting to Gemini: {error_str}"
+            try:
+                response = self.model_15.generate_content(full_prompt)
+                return response.text
+            except:
+                if "429" in str(e):
+                    return "ERROR_QUOTA_EXCEEDED: Gemini quota reached."
+                return f"ERROR_PROVIDER_FAILED: Gemini error. {str(e)}"
+
+class FallbackProvider(LLMProvider):
+    def __init__(self, providers: List[LLMProvider]):
+        self.providers = providers
+
+    def generate(self, prompt: str, system_instruction: Optional[str] = None) -> str:
+        errors = []
+        for provider in self.providers:
+            result = provider.generate(prompt, system_instruction)
+            if "ERROR_" not in result:
+                return result
+            print(f"DEBUG: Provider {provider.__class__.__name__} failed: {result}")
+            errors.append(result)
+        
+        return f"ERROR_ALL_PROVIDERS_FAILED: " + " | ".join(errors)
 
 class AIEngine:
     def __init__(self, provider: LLMProvider):
         self.provider = provider
 
-    def analyze_cv_and_job(self, cv_json: Dict, job_text: str, portfolio_projects: List[Dict]) -> Dict:
-        system_prompt = "You are an expert career coach and ATS optimization specialist."
-        prompt = f"""
-        Given the following CV data (JSON), a Job Vacancy description, and a list of available Portfolio Projects, perform a gap analysis.
-        Identify:
-        1. Match Score (0-100). Be highly realistic: if critical stack components are missing, the score should reflect that (don't default to 65%).
-        2. Missing keywords or skills. Be specific about versions or specialized tools.
-        3. Which 2-3 projects FROM THE PORTFOLIO LIST are most relevant to replace or augment existing projects.
-        4. Recommendations for summary improvement.
+    def analyze_cv_and_job(self, cv_json: Dict, job_text: str, portfolio_projects: List[Dict], certifications: List[Dict] = []) -> Dict:
+        print(f"DEBUG: Analyzing job_text (len={len(job_text)}): {job_text[:50]}")
+        # Pre-check
+        clean_text = job_text.strip() if job_text else ""
+        if not clean_text or len(clean_text) < 15: # Loosened from 30 to 15
+            return {
+                "match_score": 0,
+                "missing_skills": [],
+                "salary_expectation": {"min": 0, "max": 0, "currency": "USD", "reasoning": "Input too short."},
+                "relevant_projects": [],
+                "relevant_certifications": [],
+                "relevant_tools": {"Backend": [], "Frontend": [], "Cloud": [], "Architecture": [], "Project_Management": []},
+                "recommendations": "Please provide more details about the job.",
+                "rubric_breakdown": {"hard_skills": 0, "experience": 0, "certifications": 0, "fit": 0},
+                "detected_language": "en"
+            }
 
+        system_prompt = """You are a Senior Technical Recruiter. 
+        Analyze the match between the CV and Job. 
+        CRITICAL: Detect the language of the Job Vacancy (e.g., 'es' for Spanish, 'en' for English).
+        All 'reasoning', 'recommendations', and 'reason' fields MUST be in the 'detected_language'.
+        BE DYNAMIC: If the job description is broad, find the best overlap in skills. 
+        DO NOT be unnecessarily harsh. If it's a valid job, give a fair score."""
+        
+        prompt = f"""
         CV Data: {json.dumps(cv_json)}
         Job Vacancy: {job_text}
-        Portfolio Projects: {json.dumps(portfolio_projects)}
+        Portfolio List: {json.dumps(portfolio_projects)}
+        Certifications List: {json.dumps(certifications)}
 
-        Return the result STRICTLY as a JSON object with the following structure:
+        ANALYSIS REQUIREMENTS:
+        1. **DETECT LANGUAGE**: Identify if the vacancy is 'es' or 'en'. Return this as `detected_language`.
+        2. **MATCH SCORE RUBRIC (Total 100)**:
+           - **Hard Skills (40 pts)**: Match technologies.
+           - **Experience (30 pts)**: Match seniority/complexity.
+           - **Certifications (15 pts)**: Value added.
+           - **Fit (15 pts)**: Cultural/Tone fit.
+        3. **SALARY ESTIMATION**: 
+           - Detect Seniority.
+           - Estimate ANNUAL range.
+           - Reasoning MUST be in the `detected_language`.
+        4. **PORTFOLIO MATCHING**: Select the 3 most relevant projects. 
+           - Prioritize projects with dates that align with the job's requirements.
+        5. **TOOLS**: Identify ALL relevant tools. Categories: "Backend", "Frontend", "Databases", "Cloud", "Architecture", "Project Management".
+        6. **CERTIFICATIONS**: Match available certifications to the job requirements.
+
+        RETURN JSON:
         {{
-          "match_score": 0-100,
-          "missing_skills": ["skill1", "skill2"],
-          "relevant_projects": [
-            {{ "name": "Project Name", "reason": "Why it matches..." }}
-          ],
-          "recommendations": "Summary rewrite advice..."
+          "match_score": number,
+          "detected_language": "string",
+          "rubric_breakdown": {{ "hard_skills": number, "experience": number, "certifications": number, "fit": number }},
+          "missing_skills": ["..."],
+          "salary_expectation": {{ "min": number, "max": number, "currency": "USD", "reasoning": "..." }},
+          "relevant_projects": [{{ "name": "...", "reason": "...", "id": "..." }}],
+          "relevant_certifications": [{{"name": "...", "issuer": "...", "year": "...", "reason": "..."}}],
+          "relevant_tools": {{ 
+             "Backend": [], "Frontend": [], "Databases": [], "Cloud": [], "Architecture": [], "Project_Management": [] 
+          }},
+          "recommendations": "string",
+          "seniority_detected": "string"
         }}
         """
         response_text = self.provider.generate(prompt, system_prompt)
         try:
-            # Robust extraction
             json_match = re.search(r'(\{.*\})', response_text, re.DOTALL)
-            if json_match:
-                clean_json = json_match.group(1)
-            else:
-                clean_json = response_text.replace("```json", "").replace("```", "").strip()
-            
+            clean_json = json_match.group(1) if json_match else response_text
             result = json.loads(clean_json)
-            
-            # Ensure all keys exist to prevent frontend crashes
-            defaults = {
-                "match_score": 0,
-                "missing_skills": [],
-                "relevant_projects": [],
-                "recommendations": ""
-            }
-            for key, val in defaults.items():
-                if key not in result or result[key] is None:
-                    result[key] = val
+            # Defaults
+            result.setdefault("detected_language", "en")
+            print(f"DEBUG: Analysis result language: {result['detected_language']}")
             return result
-        except:
-            return {
-                "error": "Failed to parse AI response as JSON", 
-                "raw": response_text,
-                "match_score": 0,
-                "missing_skills": [],
-                "relevant_projects": [],
-                "recommendations": "Error parsing AI response."
-            }
+        except Exception as e:
+            print(f"DEBUG: AI Analysis Parse Error: {e}")
+            return {"error": "Failed to parse AI response", "raw": response_text}
 
-    def generate_optimized_content(self, master_profile: dict, analysis: dict, portfolio_projects: dict) -> dict:
-        """
-        Generates the final JSON for the CV, rewriting summary/experience based on analysis.
-        Injects portfolio projects into the experience section.
-        """
-        system_prompt = "You are an expert CV Writer. Your goal is to maximize the candidate's match score by strategically rewriting their profile."
+    def generate_optimized_content(self, master_profile: dict, analysis: dict, portfolio_projects: dict, tone: str = "Professional", methodology: str = "STAR") -> dict:
+        lang = analysis.get("detected_language", "en")
+        system_prompt = f"You are an expert CV Writer. Language: {lang}. You must ensure EVERYTHING (except proper names/tech) is in {lang}."
         
+        # Inject default English B2
+        languages = master_profile.get("languages", [])
+        # Find if English already exists
+        english_idx = next((i for i, l in enumerate(languages) if "English" in l.get("language", "") or "Inglés" in l.get("language", "")), None)
+        
+        if english_idx is not None:
+            # Upgrade to B2 if lower, or just ensure it says B2 as per user request "por defecto B2"
+            languages[english_idx]["level"] = "B2"
+        else:
+            languages.append({"language": "English", "level": "B2"})
+        
+        master_profile["languages"] = languages
+
+        # Certifications from analysis
+        relevant_certs = analysis.get("relevant_certifications", [])
+
         prompt = f"""
         Master Profile: {json.dumps(master_profile)}
-        Analysis Recommendations: {json.dumps(analysis)}
-        Available Portfolio Projects: {json.dumps(portfolio_projects)}
+        Analysis Context: {json.dumps(analysis)}
+        Portfolio Data: {json.dumps(portfolio_projects)}
+        
+        OUTPUT LANGUAGE: {lang}. **DO NOT MIX LANGUAGES**.
+        
+        CRITICAL: 
+        1. **LANGUAGE ENFORCEMENT**: Every field (summary, roles, descriptions, reasons) MUST be in {lang}.
+        2. **PROJECTS / EXPERIENCE**: Redact highlights using the {methodology} method in {lang}.
+           - CRITICAL: Use ONE BULLET POINT PER STEP of the methodology. 
+           - **Structure per project**:
+             - Situation: [Brief context]
+             - Task: [The specific challenge]
+             - Action: [Your technical implementation/contribution]
+             - Result: [The quantified outcome or technical scale]
+           - Ensure 4-8 high-impact bullet points total per project (e.g., repeating the STAR cycle for different features).
+           - Do NOT use the pipe separator (|). Use individual line breaks.
+           - Use advanced technical terminology suitable for Senior/Lead roles.
+           - Prioritize projects with dates that align with the job's needs.
+        3. **CERTIFICATIONS**: Include the following certifications which were identified as relevant: {json.dumps(relevant_certs)}.
+           - Also include any relevant certifications from the master profile.
+        4. **TOOLS**: Build a comprehensive 'skills' object using ALL relevant tools from master profile, projects, and analysis.
 
-        Based on the recommendations, generate a final optimized CV structure.
+        Return the optimized JSON following this structure:
+        {{
+          "basic_info": {{ ... }},
+          "summary": "...",
+          "skills": {{ 
+             "backend": [], "frontend": [], "databases": [], "cloud": [], "architecture": [], "project_management": [] 
+          }},
+          "certifications": [{{ "name": "...", "issuer": "...", "year": "..." }}],
+          "education": [{{ "institution": "...", "degree": "...", "year": "..." }}],
+          "experience": [{{ "company": "...", "role": "...", "duration": "...", "highlights": ["..."] }}],
+          "languages": [{{ "language": "...", "level": "..." }}]
+        }}
+        """
+        response_text = self.provider.generate(prompt, system_prompt)
         
-        CRITICAL INSTRUCTIONS:
-        1. **LANGUAGE**: Detect the language of the 'Job Vacancy' from the analysis context (implied). All generated text MUST be in that language.
-        2. **LANGUAGE FLAG**: Add a root-level key "language" with value "en" if English or "es" if Spanish.
-        3. **SUMMARY**: Rewrite the 'summary' to be highly relevant to the job.
-        4. **PROJECTS as EXPERIENCE**: The 'experience' section MUST be populated/replaced by the 'relevant_projects' identified in the analysis.
-           - **Structure**: Use the "Experience" format: Role = Project Role, Company = Project Name.
-           - **Content**: Use the detailed data from "Available Portfolio Projects" to write 3-4 powerful bullet points per project.
-           - **TECH STACK**: EXPLICITLY MENTION the frameworks, languages, and tools used in EACH bullet point. CRITICAL: WRAP EVERY TECHNICAL TERM IN <b> TAGS (e.g., "Built REST API using <b>Node.js</b>/<b>Express</b>...", "Optimized <b>SQL Server</b> queries...").
-           - **Quantity**: You MUST list exactly 3 project experiences.
-           - **Fallback**: If 'relevant_projects' has fewer than 3 items, you MUST add "Mambo Fitness" (or "App Fitness") as the 3rd project. Tailor its description to highlight skills relevant to the vacancy.
-        5. **SKILLS**: Assume the candidate has the 'missing_skills' if they are common in the stack and add them.
-        
-        Return ONLY a JSON object that matches the Master Profile schema + the "language" key.
+        optimized = {}
+        try:
+            # IMPROVED JSON EXTRACTION
+            # Try to find JSON within code blocks first
+            code_block_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', response_text, re.DOTALL)
+            if code_block_match:
+                clean_json = code_block_match.group(1)
+            else:
+                # Fallback to finding first { and last }
+                start_idx = response_text.find('{')
+                end_idx = response_text.rfind('}')
+                if start_idx != -1 and end_idx != -1:
+                    clean_json = response_text[start_idx:end_idx+1]
+                else:
+                    print(f"DEBUG: Could not find JSON braces in AI response. Raw: {response_text[:100]}...")
+                    clean_json = response_text # Attempt parsing anyway
+
+            optimized = json.loads(clean_json)
+        except Exception as e:
+            print(f"DEBUG: AI Generation Parse Error: {e}")
+            print(f"DEBUG: Raw AI Response that failed: {response_text}")
+            # Initialize empty optimized to trigger fallback merge
+            optimized = {}
+
+        # --- ROBUST MERGE STRATEGY ---
+        try:
+             # NORMALIZE KEYS (Fix for Spanish/English mismatch)
+            key_map = {
+                # Basic Info
+                "perfil": "basic_info",
+                "datos_básicos": "basic_info",
+                "datos_personales": "basic_info",
+                "información_personal": "basic_info",
+                
+                # Summary
+                "resumen": "summary",
+                "perfil_profesional": "summary",
+                "resumen_profesional": "summary",
+                
+                # Skills
+                "habilidades": "skills",
+                "conocimientos": "skills",
+                "competencias": "skills",
+                "tecnologías": "skills",
+                
+                # Experience
+                "experiencia": "experience",
+                "experiencia_profesional": "experience",
+                "experiencia_laboral": "experience",
+                "proyectos": "experience", # Sometimes AI puts projects at top level
+                
+                # Education
+                "educación": "education",
+                "educacion": "education",
+                "formación": "education",
+                "formacion": "education",
+                "estudios": "education",
+                
+                # Certifications
+                "certificaciones": "certifications",
+                "certificados": "certifications",
+                
+                # Languages
+                "idiomas": "languages",
+                "lenguajes": "languages"
+            }
+
+            # Normalize top-level keys
+            for key in list(optimized.keys()):
+                lower_key = key.lower()
+                if lower_key in key_map:
+                    standard_key = key_map[lower_key]
+                    if standard_key not in optimized: # Don't overwrite if English key exists
+                        print(f"DEBUG: Normalizing key '{key}' -> '{standard_key}'")
+                        optimized[standard_key] = optimized.pop(key)
+
+            # Normalize specific inner keys (like 'experiencia' items)
+            if "experience" in optimized and isinstance(optimized["experience"], list):
+                for item in optimized["experience"]:
+                    # Role/Title
+                    if "rol" in item and "role" not in item: item["role"] = item.pop("rol")
+                    if "cargo" in item and "role" not in item: item["role"] = item.pop("cargo")
+                    # Company
+                    if "empresa" in item and "company" not in item: item["company"] = item.pop("empresa")
+                    # Duration
+                    if "duración" in item and "duration" not in item: item["duration"] = item.pop("duración")
+                    if "periodo" in item and "duration" not in item: item["duration"] = item.pop("periodo")
+                    if "fecha" in item and "duration" not in item: item["duration"] = item.pop("fecha")
+                    # Highlights
+                    if "logros" in item and "highlights" not in item: item["highlights"] = item.pop("logros")
+                    if "descripción" in item and "highlights" not in item: item["highlights"] = item.pop("descripción")
+                    if "responsabilidades" in item and "highlights" not in item: item["highlights"] = item.pop("responsabilidades")
+            
+            # Normalize Skills if it's a list instead of dict (Common mistake)
+            if "skills" in optimized and isinstance(optimized["skills"], list):
+                print("DEBUG: formatted skills list to dict")
+                new_skills = {"backend": [], "frontend": [], "databases": [], "cloud": [], "architecture": [], "project_management": []}
+                # Try to distribute or just put in backend
+                new_skills["backend"] = optimized["skills"]
+                optimized["skills"] = new_skills
+
+            # Helper to check if a value is "empty" (None, empty list, empty dict, empty string)
+            def is_empty(val):
+                if val is None: return True
+                if isinstance(val, (str, list, dict)) and len(val) == 0: return True
+                return False
+
+            # Mandatory keys for the template
+            keys_to_check = ["basic_info", "summary", "skills", "certifications", "education", "experience", "languages"]
+            
+            for key in keys_to_check:
+                # Get value from AI optimized data
+                ai_val = optimized.get(key)
+                
+                # Get value from Master Profile (Source of Truth for facts)
+                master_val = master_profile.get(key)
+                
+                # If AI value is empty but Master has data, use Master
+                if is_empty(ai_val): 
+                    if not is_empty(master_val):
+                        print(f"DEBUG: AI missed or returned empty '{key}'. Fallback to Master Profile data.")
+                        optimized[key] = master_val
+                    else:
+                         print(f"DEBUG: '{key}' is empty in both AI and Master Profile. This section will be empty.")
+                
+                # Special case: Experience must be a list
+                if key == "experience" and not isinstance(optimized.get(key), list):
+                     print(f"DEBUG: AI returned invalid '{key}' type. Fallback to Master.")
+                     optimized[key] = master_profile.get(key, [])
+
+                # Special case: Skills must be a dict
+                if key == "skills" and not isinstance(optimized.get(key), dict):
+                    print(f"DEBUG: AI returned invalid '{key}' type. Fallback to Master.")
+                    optimized[key] = master_profile.get(key, {})
+
+            # Ensure 'project_management' is used if AI returned 'product' (common AI hallucination/mapping)
+            if "product" in optimized.get("skills", {}):
+                current_pm = optimized["skills"].get("project_management", [])
+                product_skills = optimized["skills"].pop("product")
+                # Merge unique
+                optimized["skills"]["project_management"] = list(set(current_pm + product_skills))
+
+            optimized["language"] = lang # Ensure singular 'language' is present for template
+            
+            print(f"DEBUG: Final Optimized JSON keys: {list(optimized.keys())}")
+            # Debug sizes
+            print(f"DEBUG: Experience entries: {len(optimized.get('experience', []))}")
+            print(f"DEBUG: Skills categories: {list(optimized.get('skills', {}).keys())}")
+            
+            return optimized
+
+        except Exception as e:
+            print(f"DEBUG: Critical Error in Merge Logic: {e}")
+            # Ultimate Fallback: Return Master Profile but ensure language is set
+            master_profile["language"] = lang
+            return master_profile
+
+    def generate_cover_letter(self, master_profile: dict, job_text: str, analysis: dict) -> dict:
+        lang = analysis.get("detected_language", "en")
+        system_prompt = f"You are an expert executive letter writer. Language: {lang}."
+        prompt = f"""
+        Generate a compelling cover letter in '{lang}'.
+        Profile: {json.dumps(master_profile)}
+        Job: {job_text}
+        Analysis: {json.dumps(analysis)}
+
+        CRITICAL: 
+        1. **LANGUAGE**: The entire content MUST be in '{lang}'.
+        2. **DYNAMISM**: Reference specific projects from the 'relevant_projects' list.
+        3. **STRUCTURE**: Professional and results-oriented.
+
+        Return a JSON object with:
+        {{
+            "date": "string",
+            "recipient": "Hiring Manager",
+            "content": "string (multiline)",
+            "closing": "string"
+        }}
         """
         response_text = self.provider.generate(prompt, system_prompt)
         try:
-            # Robust extraction
             json_match = re.search(r'(\{.*\})', response_text, re.DOTALL)
-            if json_match:
-                clean_json = json_match.group(1)
-            else:
-                clean_json = response_text.replace("```json", "").replace("```", "").strip()
+            clean_json = json_match.group(1) if json_match else response_text
             return json.loads(clean_json)
         except:
-            return cv_json  # Fallback to original if AI fails
+            if lang == "es":
+                return {"error": "Error de generación", "content": "Estimado Responsable de Selección..."}
+            return {"error": "Generation failed", "content": "Dear Hiring Manager..."}
