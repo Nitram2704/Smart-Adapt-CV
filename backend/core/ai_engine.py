@@ -256,7 +256,10 @@ class AIEngine:
 
     def generate_optimized_content(self, master_profile: dict, analysis: dict, portfolio_projects: dict, tone: str = "Professional", methodology: str = "STAR") -> dict:
         lang = analysis.get("detected_language", "en")
-        system_prompt = f"You are an expert CV Writer. Language: {lang}. You must ensure EVERYTHING (except proper names/tech) is in {lang}."
+        system_prompt = f"""You are an Expert Senior CV Writer and Technical Branding Specialist. 
+        Language: {lang}. 
+        Your goal is to transform standard career data into a high-impact, 'Senior/Lead' caliber document.
+        EVERYTHING (except proper names/tech) MUST be strictly in {lang}."""
         
         # Inject default English B2
         languages = master_profile.get("languages", [])
@@ -281,15 +284,21 @@ class AIEngine:
         
         OUTPUT LANGUAGE: {lang}. **DO NOT MIX LANGUAGES**.
         
-        CRITICAL: 
-        1. **LANGUAGE ENFORCEMENT**: Every field (summary, roles, descriptions, reasons) MUST be in {lang}.
-        2. **PROJECTS / EXPERIENCE**: Redact highlights using the {methodology} method in {lang}.
-           - CRITICAL: Use ONE BULLET POINT PER STEP of the methodology. 
-           - **Structure per project**:
-             - Situation: [Brief context]
-             - Task: [The specific challenge]
-             - Action: [Your technical implementation/contribution]
-             - Result: [The quantified outcome or technical scale]
+        STRICT WRITING RULES (SENIOR PERSONA):
+        1. **MANDATORY QUANTIFICATION**: Every highlight MUST include at least one quantified result or scale indicator (e.g., "reduced latency by 40%", "managed 50k+ daily users", "achieved 95% test coverage").
+        2. **IMPACT VERBS**: Use active and high-impact engineering verbs: *Architected, Orchestrated, Engineered, Deployed, Systematized, Optimized, Spearheaded*.
+        3. **SINGLE STAR CONSTRAINT**: For each experience/project entry, you MUST provide EXACTLY ONE 'STAR' accomplishment. 
+           - Choose the MOST RELEVANT technical accomplishment for the target job.
+           - Return EXACTLY 4 bullet points total per experience entry (one for Situation, one for Task, one for Action, one for Result).
+           - Do NOT repeat the STAR cycle. Do NOT provide multiple actions or results.
+        4. **LANGUAGE ENFORCEMENT**: Every field (summary, roles, descriptions, reasons) MUST be in {lang}.
+        5. **PROJECTS / EXPERIENCE**: Redact highlights using the {methodology} method in {lang}.
+           - CRITICAL: Use EXACTLY FOUR BULLET POINTS PER ENTRY. 
+           - **Structure per entry**:
+             - Situation: [Strategic context]
+             - Task: [The high-level technical challenge]
+             - Action: [Sophisticated technical implementation]
+             - Result: [Quantified achievement/Metric]
            - Ensure 4-8 high-impact bullet points total per project (e.g., repeating the STAR cycle for different features).
            - Do NOT use the pipe separator (|). Use individual line breaks.
            - Use advanced technical terminology suitable for Senior/Lead roles.
