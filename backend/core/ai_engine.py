@@ -258,7 +258,8 @@ class AIEngine:
         lang = analysis.get("detected_language", "en")
         system_prompt = f"""You are an Expert Senior CV Writer and Technical Branding Specialist. 
         Language: {lang}. 
-        Your goal is to transform standard career data into a high-impact, 'Senior/Lead' caliber document.
+        Your goal is to transform standard career data into a high-impact document.
+        The title should simply be "Software Engineer".
         EVERYTHING (except proper names/tech) MUST be strictly in {lang}."""
         
         # Inject default English B2
@@ -305,7 +306,11 @@ class AIEngine:
            - Prioritize projects with dates that align with the job's needs.
         3. **CERTIFICATIONS**: Include the following certifications which were identified as relevant: {json.dumps(relevant_certs)}.
            - Also include any relevant certifications from the master profile.
-        4. **TOOLS**: Build a comprehensive 'skills' object using ALL relevant tools from master profile, projects, and analysis.
+        4. **TOOLS & SKILLS ENRICHMENT**:
+           - **HARVESTING**: Extract EVERY technical tool, library, and framework mentioned in the Experience and Portfolio sections.
+           - **VACANCY ALIGNMENT**: Identify the top 3-5 most critical technologies mentioned in the 'Analysis Context' (vacancy) that the user should highlight. Even if not explicitly in the Master Profile, if they are relevant to the user's domain (e.g., a backend tool for a backend dev), include them as 'Target Skills' or integrated into the categories.
+           - **COMPREHENSIVENESS**: Build a VERY DENSE 'skills' object. Do NOT be selective. Aim for 6-10 items per category if they are mentioned anywhere in the source data.
+           - **PRIORITY**: If the Vacancy asks for a skill and it's in the Master Profile, it MUST be first in its category.
 
         Return the optimized JSON following this structure:
         {{
@@ -433,36 +438,42 @@ class AIEngine:
             keys_to_check = ["basic_info", "summary", "skills", "certifications", "education", "experience", "languages"]
             
             for key in keys_to_check:
-                # Get value from AI optimized data
                 ai_val = optimized.get(key)
-                
-                # Get value from Master Profile (Source of Truth for facts)
                 master_val = master_profile.get(key)
                 
-                # If AI value is empty but Master has data, use Master
+                # Special Case: Skills should be a MERGE (Additive), not a replacement
+                if key == "skills":
+                    print("DEBUG: Merging Skills (AI + Master)")
+                    merged_skills = {}
+                    ai_skills = ai_val if isinstance(ai_val, dict) else {}
+                    master_skills = master_val if isinstance(master_val, dict) else {}
+                    
+                    # Categories to iterate
+                    categories = set(list(ai_skills.keys()) + list(master_skills.keys()))
+                    for cat in categories:
+                        ai_list = ai_skills.get(cat, [])
+                        master_list = master_skills.get(cat, [])
+                        # Ensure they are lists
+                        if not isinstance(ai_list, list): ai_list = [ai_list] if ai_list else []
+                        if not isinstance(master_list, list): master_list = [master_list] if master_list else []
+                        
+                        # Merge unique items, case insensitive
+                        seen = set()
+                        final_list = []
+                        for item in (ai_list + master_list):
+                            if str(item).lower().strip() not in seen:
+                                final_list.append(item)
+                                seen.add(str(item).lower().strip())
+                        merged_skills[cat] = final_list
+                        print(f"DEBUG: Category '{cat}' merged count: {len(final_list)}")
+                    optimized["skills"] = merged_skills
+                    continue
+
+                # Fallback for other sections (Experience, Summary, etc.)
                 if is_empty(ai_val): 
                     if not is_empty(master_val):
-                        print(f"DEBUG: AI missed or returned empty '{key}'. Fallback to Master Profile data.")
+                        print(f"DEBUG: AI missed or returned empty '{key}'. Fallback to Master data.")
                         optimized[key] = master_val
-                    else:
-                         print(f"DEBUG: '{key}' is empty in both AI and Master Profile. This section will be empty.")
-                
-                # Special case: Experience must be a list
-                if key == "experience" and not isinstance(optimized.get(key), list):
-                     print(f"DEBUG: AI returned invalid '{key}' type. Fallback to Master.")
-                     optimized[key] = master_profile.get(key, [])
-
-                # Special case: Skills must be a dict
-                if key == "skills" and not isinstance(optimized.get(key), dict):
-                    print(f"DEBUG: AI returned invalid '{key}' type. Fallback to Master.")
-                    optimized[key] = master_profile.get(key, {})
-
-            # Ensure 'project_management' is used if AI returned 'product' (common AI hallucination/mapping)
-            if "product" in optimized.get("skills", {}):
-                current_pm = optimized["skills"].get("project_management", [])
-                product_skills = optimized["skills"].pop("product")
-                # Merge unique
-                optimized["skills"]["project_management"] = list(set(current_pm + product_skills))
 
             optimized["language"] = lang # Ensure singular 'language' is present for template
             
