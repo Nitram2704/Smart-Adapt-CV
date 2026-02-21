@@ -521,3 +521,49 @@ class AIEngine:
             if lang == "es":
                 return {"error": "Error de generación", "content": "Estimado Responsable de Selección..."}
             return {"error": "Generation failed", "content": "Dear Hiring Manager..."}
+
+    def interpret_target_goal(self, goal_text: str) -> Dict:
+        """
+        Proactively interprets a vague goal (e.g., 'Tesla', 'Fintech') and generates 
+        a high-impact synthetic vacancy description.
+        """
+        system_prompt = "You are an Expert Corporate Intelligence Agent and Technical Recruiter. Your goal is to interpret vague career goals and generate a highly realistic, high-impact job description that reflects the target company's culture and tech stack."
+        
+        prompt = f"""
+        Analyze the following user goal and generate a 'Synthetic Vacancy'.
+        USER GOAL: {goal_text}
+
+        Your output must be a JSON with:
+        {{
+          "interpreted_role": "Calculated role title",
+          "synthetic_vacancy": "A 300-500 word realistic job description including: Company Mission, Tech Stack, Key Responsibilities, and Desired Impact.",
+          "proactive_tips": ["Tip 1", "Tip 2"]
+        }}
+
+        INSTRUCTIONS:
+        1. If the goal is just a company (e.g., 'Google'), assume a 'Software Engineer' role unless specified.
+        2. Research (using your internal knowledge) the company's tech stack (e.g., Google = Go, C++, Python; Netflix = Java, Node.js).
+        3. Include cultural keywords (e.g., Amazon = Leadership Principles; Tesla = First Principles).
+        4. Be proactive: Suggest 2-3 tips on how to improve the CV specifically for this target.
+        5. Return ONLY the JSON.
+        """
+        
+        response = self.provider.generate(prompt, system_prompt)
+        try:
+            # Robust JSON extraction
+            import re
+            json_match = re.search(r'(\{.*\})', response, re.DOTALL)
+            clean_json = json_match.group(1) if json_match else response
+            
+            # Remove any trailing junk if needed
+            if "```" in clean_json:
+                clean_json = clean_json.split("```")[0].strip()
+                
+            return json.loads(clean_json)
+        except Exception as e:
+            print(f"DEBUG: Goal Interpretation Parse Error: {e}")
+            return {
+                "interpreted_role": "Software Engineer",
+                "synthetic_vacancy": f"Synthetic Vacancy for: {goal_text}. Focus on technical excellence and high-impact results.",
+                "proactive_tips": ["Alinea tus proyectos con el stack tecnológico de la empresa.", "Cuantifica tus resultados técnicos y de negocio."]
+            }

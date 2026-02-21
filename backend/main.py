@@ -92,6 +92,9 @@ class GenerateRequest(BaseModel):
     tone: Optional[str] = "Professional"
     methodology: Optional[str] = "STAR"
 
+class TargetGoalRequest(BaseModel):
+    goal_text: str
+
 @app.get("/")
 async def root():
     return {"message": "Smart-Adapt CV API is running", "provider": llm_provider.__class__.__name__}
@@ -128,6 +131,15 @@ async def analyze_vacancy(request: AnalysisRequest):
         certifications = load_certifications()
         analysis = ai_engine.analyze_cv_and_job(request.profile, request.vacancy_text, portfolio_projects, certifications)
         return {"analysis": analysis}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/cv/interpret-goal")
+async def interpret_goal(request: TargetGoalRequest):
+    try:
+        print(f"DEBUG: /cv/interpret-goal called for: {request.goal_text}")
+        result = ai_engine.interpret_target_goal(request.goal_text)
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
