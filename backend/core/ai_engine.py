@@ -48,12 +48,12 @@ class OpenRouterProvider(LLMProvider):
         self.api_key = api_key
         # List of free models to try in order
         self.free_models = [
-            "deepseek/deepseek-r1-0528:free", # User favorite
+            "qwen/qwen-2.5-72b-instruct:free", # Extremely powerful for parsing/logic
+            "google/gemma-3-27b-it:free",      # Very fast and efficient
             "meta-llama/llama-3.3-70b-instruct:free",
             "mistralai/mistral-small-3.1-24b-instruct:free",
-            "google/gemma-3-27b-it:free",
-            "liquid/lfm-2.5-1.2b-instruct:free",
-            "microsoft/phi-3-medium-128k-instruct:free",
+            "deepseek/deepseek-r1-distill-llama-70b:free", # Reliable alternative to full R1
+            "deepseek/deepseek-r1-0528:free", # Keep but at the bottom due to traffic
         ]
         # If a specific model is requested via env, put it first
         env_model = os.getenv("OPENROUTER_MODEL")

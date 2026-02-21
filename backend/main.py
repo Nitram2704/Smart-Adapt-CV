@@ -46,7 +46,7 @@ app.add_middleware(
 history_manager = HistoryManager()
 config_manager = ConfigManager()
 
-# Initialize AI Engine — Priority: OpenRouter > Groq > Gemini > Ollama
+# Initialize AI Engine — Priority: Groq > Gemini > OpenRouter > Ollama
 openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
 groq_api_keys = [
     os.getenv("GROQ_API_KEY"), 
@@ -61,22 +61,21 @@ ollama_model = os.getenv("OLLAMA_MODEL", "llama3.2")
 
 providers = []
 
-# Priority 1: OpenRouter (Free/Paid)
-if openrouter_api_key:
-    # You can change the model here or via env var
-    providers.append(OpenRouterProvider(api_key=openrouter_api_key, model="google/gemma-3-27b-it:free"))
-
-# Priority 2: Groq (Low Latency)
+# Priority 1: Groq (Low Latency / High Speed)
 for key in groq_api_keys:
     if key:
         providers.append(GroqProvider(api_key=key))
 
-# Priority 3: Gemini (High Capacity)
+# Priority 2: Gemini (High Intelligence / Large Window)
 for key in gemini_api_keys:
     if key:
         providers.append(GeminiProvider(api_key=key))
 
-# Priority 4: Ollama (Local Fallback)
+# Priority 3: OpenRouter (Fallback to various models)
+if openrouter_api_key:
+    providers.append(OpenRouterProvider(api_key=openrouter_api_key))
+
+# Priority 4: Ollama (Local Offline Fallback)
 providers.append(OllamaProvider(model=ollama_model))
 
 llm_provider = FallbackProvider(providers)
