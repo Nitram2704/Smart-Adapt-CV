@@ -39,4 +39,15 @@ The current `WeasyPrint` setup on Windows is failing to render modern CSS layout
 ## Execution Order
 1.  **Backend Specialist:** Sanitize Fonts.
 2.  **Frontend Specialist:** Implement Table Layout.
-3.  **Test Engineer:** Verify output.
+3.  **Frontend Specialist:** Apply Compact Spacing Optimization.
+4.  **Test Engineer:** Verify output and Page Count.
+
+---
+
+## Compact Layout Optimization (New)
+**Goal:** Ensure 1-page fit.
+- **Header:** Reduce padding `30px` -> `15px`.
+- **Sections:** `margin-top` 25px -> 15px.
+- **Experience:** `margin-bottom` 20px -> 10px.
+- **Fonts:** Reduce base size to `8.5pt` if needed.
+- **References:** Move to full-width footer to save vertical space? (Option B from Brainstorm).
