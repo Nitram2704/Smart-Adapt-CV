@@ -151,6 +151,13 @@ async def generate_cv(request: GenerateRequest):
         if "experience" in request.profile:
              print(f"DEBUG: Request Profile Experience Count: {len(request.profile['experience'])}")
         
+        # Phone Number Fail-safe
+        if "basic_info" in request.profile:
+            current_phone = str(request.profile["basic_info"].get("phone", ""))
+            if "3042621" in current_phone.replace(" ", ""):
+                print(f"DEBUG: Correcting phone number from {current_phone} to +57 304 2621096")
+                request.profile["basic_info"]["phone"] = "+57 304 2621096"
+        
         if not request.recommendations or "error" in request.recommendations:
             print("ERROR: Invalid Recommendations in Request")
             raise HTTPException(status_code=400, detail="Cannot generate CV without a valid vacancy analysis.")

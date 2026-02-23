@@ -32,6 +32,7 @@ def parse_text_to_master_profile(text: str, ai_client) -> Dict:
     Analyze the following CV text and extract it into a STRICT JSON format.
     
     PREFERRED CONTACT INFO (Use these if found or mentioned):
+    - Phone: +57 304 2621096
     - GitHub: https://github.com/Nitram2704
     - LinkedIn: https://www.linkedin.com/in/martin-sanchez-urrego-3b14133a4/
     - Portfolio: https://nitram2704.github.io/CV/CV.html

@@ -293,7 +293,8 @@ class AIEngine:
            - Return EXACTLY 4 bullet points total per experience entry (one for Situation, one for Task, one for Action, one for Result).
            - Do NOT repeat the STAR cycle. Do NOT provide multiple actions or results.
         4. **LANGUAGE ENFORCEMENT**: Every field (summary, roles, descriptions, reasons) MUST be in {lang}.
-        5. **PROJECTS / EXPERIENCE**: Redact highlights using the {methodology} method in {lang}.
+        5. **MANDATORY FIELDS**: For EACH experience entry, you MUST provide the `company` (Project/Company Name), `role`, `duration`, and `highlights`. DO NOT omit the company name.
+        6. **PROJECTS / EXPERIENCE**: Redact highlights using the {methodology} method in {lang}.
            - CRITICAL: Use EXACTLY FOUR BULLET POINTS PER ENTRY. 
            - **Structure per entry**:
              - Situation: [Strategic context]
@@ -314,7 +315,9 @@ class AIEngine:
 
         Return the optimized JSON following this structure:
         {{
-          "basic_info": {{ ... }},
+          "basic_info": {{ 
+             "portfolio_url": "...", "linkedin_url": "...", "github_url": "...", "phone": "...", "email": "...", "name": "..." 
+          }},
           "summary": "...",
           "skills": {{ 
              "backend": [], "frontend": [], "databases": [], "cloud": [], "architecture": [], "project_management": [] 
@@ -409,8 +412,10 @@ class AIEngine:
                     # Role/Title
                     if "rol" in item and "role" not in item: item["role"] = item.pop("rol")
                     if "cargo" in item and "role" not in item: item["role"] = item.pop("cargo")
-                    # Company
+                    # Company / Project
                     if "empresa" in item and "company" not in item: item["company"] = item.pop("empresa")
+                    if "proyecto" in item and "company" not in item: item["company"] = item.pop("proyecto")
+                    if "nombre_proyecto" in item and "company" not in item: item["company"] = item.pop("nombre_proyecto")
                     # Duration
                     if "duración" in item and "duration" not in item: item["duration"] = item.pop("duración")
                     if "periodo" in item and "duration" not in item: item["duration"] = item.pop("periodo")
@@ -418,6 +423,7 @@ class AIEngine:
                     # Highlights
                     if "logros" in item and "highlights" not in item: item["highlights"] = item.pop("logros")
                     if "descripción" in item and "highlights" not in item: item["highlights"] = item.pop("descripción")
+                    if "descripcion" in item and "highlights" not in item: item["highlights"] = item.pop("descripcion")
                     if "responsabilidades" in item and "highlights" not in item: item["highlights"] = item.pop("responsabilidades")
             
             # Normalize Skills if it's a list instead of dict (Common mistake)
@@ -474,6 +480,30 @@ class AIEngine:
                     if not is_empty(master_val):
                         print(f"DEBUG: AI missed or returned empty '{key}'. Fallback to Master data.")
                         optimized[key] = master_val
+                elif key == "basic_info" and isinstance(ai_val, dict) and isinstance(master_val, dict):
+                    # Deep merge for basic_info sub-fields (Social Links)
+                    print("DEBUG: Deep merging basic_info (Links/Contact)")
+                    link_keys = ["portfolio_url", "linkedin_url", "github_url", "phone", "email"]
+                    for lk in link_keys:
+                        if is_empty(ai_val.get(lk)) and not is_empty(master_val.get(lk)):
+                            print(f"DEBUG: Restoring missing link/field '{lk}' from Master")
+                            ai_val[lk] = master_val[lk]
+                            
+                elif key == "experience" and isinstance(ai_val, list) and isinstance(master_val, list):
+                    # Field-level merge for experience items
+                    print(f"DEBUG: Field-level merge for experience entries (AI={len(ai_val)}, Master={len(master_val)})")
+                    for i, ai_item in enumerate(ai_val):
+                        if i < len(master_val):
+                            master_item = master_val[i]
+                            # If AI missed company but master has it, restore it
+                            if is_empty(ai_item.get("company")) and not is_empty(master_item.get("company")):
+                                ai_item["company"] = master_item["company"]
+                            # If AI missed duration but master has it, restore it
+                            if is_empty(ai_item.get("duration")) and not is_empty(master_item.get("duration")):
+                                ai_item["duration"] = master_item["duration"]
+                            # If AI missed role but master has it, restore it
+                            if is_empty(ai_item.get("role")) and not is_empty(master_item.get("role")):
+                                ai_item["role"] = master_item["role"]
 
             optimized["language"] = lang # Ensure singular 'language' is present for template
             
