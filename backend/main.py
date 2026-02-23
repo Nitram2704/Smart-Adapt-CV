@@ -95,6 +95,11 @@ class GenerateRequest(BaseModel):
 class TargetGoalRequest(BaseModel):
     goal_text: str
 
+class OptimizeHighlightRequest(BaseModel):
+    highlight_text: str
+    target_keyword: str
+    language: Optional[str] = "en"
+
 @app.get("/")
 async def root():
     return {"message": "Smart-Adapt CV API is running", "provider": llm_provider.__class__.__name__}
@@ -218,6 +223,44 @@ async def generate_cv(request: GenerateRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/cv/generate-ats")
+async def generate_cv_ats(request: GenerateRequest):
+    try:
+        print(f"DEBUG: /cv/generate-ats called.")
+        portfolio_projects = load_portfolio_projects()
+        
+        optimized = ai_engine.generate_optimized_content(
+            request.profile, 
+            request.recommendations, 
+            portfolio_projects,
+            tone=request.tone,
+            methodology=request.methodology
+        )
+        
+        # Use the NEW ATS template
+        html = render_cv_html(optimized, template_name="ats_foreign_template.html")
+        
+        safe_name = request.profile.get("basic_info", {}).get("name", "optimized").replace(" ", "_")
+        filename = f"cv_ats_{safe_name}.pdf"
+        
+        generate_pdf(html, os.path.join(OUTPUTS_DIR, filename))
+        
+        return {"filename": filename, "optimized_profile": optimized}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/optimize-highlight")
+async def optimize_highlight(request: OptimizeHighlightRequest):
+    try:
+        rewritten = ai_engine.optimize_highlight(
+            request.highlight_text, 
+            request.target_keyword, 
+            request.language
+        )
+        return {"rewritten_text": rewritten}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/cv/generate-cl")
 async def generate_cl(request: GenerateRequest):
     try:
@@ -251,3 +294,9 @@ async def generate_cl(request: GenerateRequest):
     except Exception as e:
         print(f"CL Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    # Use the port from environment variables or 8000 as default
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)

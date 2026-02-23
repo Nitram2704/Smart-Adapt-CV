@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="{{ language | default('en') }}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ basic_info.name }} - Curriculum Vitae</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0.75in;
+        }
+
+        body {
+            font-family: "Times New Roman", Times, serif;
+            line-height: 1.4;
+            font-size: 11pt;
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 18pt;
+            text-transform: uppercase;
+        }
+
+        .contact-info {
+            font-size: 10pt;
+            margin-top: 5px;
+        }
+
+        .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px solid #000;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .exp-item {
+            margin-bottom: 15px;
+        }
+
+        .exp-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+
+        .exp-sub-header {
+            display: flex;
+            justify-content: space-between;
+            font-style: italic;
+        }
+
+        ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 3px;
+        }
+
+        .skills-list {
+            margin-bottom: 10px;
+        }
+
+        .skills-category {
+            font-weight: bold;
+        }
+
+        a {
+            color: #000;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>{{ basic_info.name }}</h1>
+        <div class="contact-info">
+            {{ basic_info.email }} | {{ basic_info.phone }}
+            {% if basic_info.linkedin_url %} | <a href="{{ basic_info.linkedin_url }}">LinkedIn</a>{% endif %}
+            {% if basic_info.github_url %} | <a href="{{ basic_info.github_url }}">GitHub</a>{% endif %}
+            {% if basic_info.portfolio_url %} | <a href="{{ basic_info.portfolio_url }}">Portfolio</a>{% endif %}
+        </div>
+    </div>
+
+    {% if summary %}
+    <div class="section-title">Professional Summary</div>
+    <div class="summary-text">
+        {{ summary }}
+    </div>
+    {% endif %}
+
+    <div class="section-title">Experience</div>
+    {% for job in experience %}
+    <div class="exp-item">
+        <div class="exp-header">
+            <span>{{ job.company }}</span>
+            <span>{{ job.duration }}</span>
+        </div>
+        <div class="exp-sub-header">
+            <span>{{ job.role }}</span>
+        </div>
+        <ul>
+            {% for highlight in job.highlights %}
+            <li>{{ highlight | safe }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+
+    <div class="section-title">Education</div>
+    {% for edu in education %}
+    <div class="exp-item">
+        <div class="exp-header">
+            <span>{{ edu.institution }}</span>
+            <span>{{ edu.year }}</span>
+        </div>
+        <div class="exp-sub-header">
+            <span>{{ edu.degree }}</span>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="section-title">Skills</div>
+    <div class="skills-list">
+        {% if skills.backend %}<div><span class="skills-category">Backend:</span> {{ skills.backend | join(', ') }}
+        </div>{% endif %}
+        {% if skills.frontend %}<div><span class="skills-category">Frontend:</span> {{ skills.frontend | join(', ') }}
+        </div>{% endif %}
+        {% if skills.databases %}<div><span class="skills-category">Databases:</span> {{ skills.databases | join(', ')
+            }}</div>{% endif %}
+        {% if skills.cloud %}<div><span class="skills-category">Cloud & DevOps:</span> {{ skills.cloud | join(', ') }}
+        </div>{% endif %}
+    </div>
+
+</body>
+
+</html>

@@ -597,3 +597,22 @@ class AIEngine:
                 "synthetic_vacancy": f"Synthetic Vacancy for: {goal_text}. Focus on technical excellence and high-impact results.",
                 "proactive_tips": ["Alinea tus proyectos con el stack tecnológico de la empresa.", "Cuantifica tus resultados técnicos y de negocio."]
             }
+
+    def optimize_highlight(self, highlight_text: str, target_keyword: str, language: str = "en") -> str:
+        """
+        Rewrites a single highlight/bullet point to naturally incorporate a target keyword.
+        """
+        system_prompt = f"You are an Expert CV Writer. Your goal is to integrate a keyword into an existing achievement while maintaining professional tone and metric focus. Language: {language}."
+        
+        prompt = f"""
+        Original Achievement: {highlight_text}
+        Target Keyword: {target_keyword}
+        
+        TASK:
+        Rewrite the achievement to naturally include the keyword. 
+        Keep it concise, quantified, and technical.
+        Return ONLY the rewritten text, no explanations.
+        """
+        
+        rewritten = self.provider.generate(prompt, system_prompt)
+        return rewritten.strip().strip('"').strip("'")

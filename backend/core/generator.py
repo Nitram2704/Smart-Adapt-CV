@@ -10,10 +10,10 @@ import os
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
 env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 
-def render_cv_html(data: dict) -> str:
+def render_cv_html(data: dict, template_name: str = "cv_template.html") -> str:
     """Renders the CV data into HTML using Jinja2."""
-    print(f"DEBUG: Rendering CV with keys: {list(data.keys())}")
-    template = env.get_template("cv_template.html")
+    print(f"DEBUG: Rendering CV with template {template_name} and keys: {list(data.keys())}")
+    template = env.get_template(template_name)
     return template.render(**data)
 
 def render_cover_letter_html(data: dict) -> str:
