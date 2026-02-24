@@ -104,6 +104,10 @@ class OptimizeHighlightRequest(BaseModel):
 async def root():
     return {"message": "Smart-Adapt CV API is running", "provider": llm_provider.__class__.__name__}
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
 @app.get("/config")
 async def get_config():
     return config_manager.get_config()
