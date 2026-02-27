@@ -256,22 +256,30 @@ class AIEngine:
 
     def generate_optimized_content(self, master_profile: dict, analysis: dict, portfolio_projects: dict, tone: str = "Professional", methodology: str = "STAR") -> dict:
         lang = analysis.get("detected_language", "en")
+        title_instruction = 'The title should simply be "Software Engineer".' if lang == "en" else 'Use the original professional title from the master profile as is.'
+        
         system_prompt = f"""You are an Expert Senior CV Writer and Technical Branding Specialist. 
         Language: {lang}. 
         Your goal is to transform standard career data into a high-impact document.
-        The title should simply be "Software Engineer".
+        {title_instruction}
         EVERYTHING (except proper names/tech) MUST be strictly in {lang}."""
         
-        # Inject default English B2
+        # Inject default English B2 and Spanish Native
         languages = master_profile.get("languages", [])
-        # Find if English already exists
-        english_idx = next((i for i, l in enumerate(languages) if "English" in l.get("language", "") or "Inglés" in l.get("language", "")), None)
         
-        if english_idx is not None:
-            # Upgrade to B2 if lower, or just ensure it says B2 as per user request "por defecto B2"
-            languages[english_idx]["level"] = "B2"
+        # English
+        eng_idx = next((i for i, l in enumerate(languages) if "English" in l.get("language", "") or "Inglés" in l.get("language", "")), None)
+        if eng_idx is not None:
+            languages[eng_idx]["level"] = "B2"
         else:
-            languages.append({"language": "English", "level": "B2"})
+            languages.append({"language": "English" if lang == "en" else "Inglés", "level": "B2"})
+        
+        # Spanish
+        spa_idx = next((i for i, l in enumerate(languages) if "Spanish" in l.get("language", "") or "Español" in l.get("language", "")), None)
+        if spa_idx is not None:
+            languages[spa_idx]["level"] = "Native" if lang == "en" else "Nativo"
+        else:
+            languages.append({"language": "Spanish" if lang == "en" else "Español", "level": "Native" if lang == "en" else "Nativo"})
         
         master_profile["languages"] = languages
 
@@ -286,6 +294,7 @@ class AIEngine:
         OUTPUT LANGUAGE: {lang}. **DO NOT MIX LANGUAGES**.
         
         STRICT WRITING RULES (SENIOR PERSONA):
+        0. **BOLD FORMATTING**: ONLY within the 'summary' and 'experience' highlights, when mentioning any framework, library, technology, tool (e.g., **C#**, **React**, **Docker**) or any quantified result/metric (e.g., **"reduced latency by 40%"**, **"95% test coverage"**), you MUST wrap it in `<strong>` tags (e.g., `<strong>C#</strong>`, `<strong>40%</strong>`).
         1. **MANDATORY QUANTIFICATION**: Every highlight MUST include at least one quantified result or scale indicator (e.g., "reduced latency by 40%", "managed 50k+ daily users", "achieved 95% test coverage").
         2. **IMPACT VERBS**: Use active and high-impact engineering verbs: *Architected, Orchestrated, Engineered, Deployed, Systematized, Optimized, Spearheaded*.
         3. **SINGLE STAR CONSTRAINT**: For each experience/project entry, you MUST provide EXACTLY ONE 'STAR' accomplishment. 
@@ -463,13 +472,15 @@ class AIEngine:
                         if not isinstance(ai_list, list): ai_list = [ai_list] if ai_list else []
                         if not isinstance(master_list, list): master_list = [master_list] if master_list else []
                         
-                        # Merge unique items, case insensitive
+                        # Merge unique items, case insensitive, stripping HTML for comparison
                         seen = set()
                         final_list = []
                         for item in (ai_list + master_list):
-                            if str(item).lower().strip() not in seen:
+                            # Strip <strong> tags for accurate comparison
+                            clean_item = re.sub(r'</?strong>', '', str(item), flags=re.IGNORECASE).lower().strip()
+                            if clean_item not in seen:
                                 final_list.append(item)
-                                seen.add(str(item).lower().strip())
+                                seen.add(clean_item)
                         merged_skills[cat] = final_list
                         print(f"DEBUG: Category '{cat}' merged count: {len(final_list)}")
                     optimized["skills"] = merged_skills

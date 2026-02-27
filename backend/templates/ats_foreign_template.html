@@ -150,6 +150,17 @@
     </div>
     {% endif %}
 
+    {% if languages %}
+    <div class="section-title">Languages</div>
+    <div class="skills-list">
+        {% for lang in languages %}
+        <div>
+            <span class="skills-category">{{ lang.language }}:</span> {{ lang.level }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
 </body>
 
 </html>
