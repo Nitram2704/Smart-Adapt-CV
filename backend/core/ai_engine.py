@@ -217,8 +217,12 @@ class AIEngine:
            - **Certifications (15 pts)**: Value added.
            - **Fit (15 pts)**: Cultural/Tone fit.
         3. **SALARY ESTIMATION**: 
-           - Detect Seniority.
-           - Estimate ANNUAL range.
+           - Detect Seniority and Region (default to Colombia if ambiguous).
+           - Estimate ANNUAL range. 
+           - **STRICT GUIDELINES for Colombia (COP)**:
+             - **Practicante / Intern**: 1.3M - 2M COP monthly (15M - 24M COP/year).
+             - **Junior / Entry**: 2.5M - 4.5M COP monthly (30M - 54M COP/year).
+             - **Intermediate / Senior**: 6M - 15M+ COP monthly (72M - 180M+ COP/year).
            - Reasoning MUST be in the `detected_language`.
         4. **PORTFOLIO MATCHING**: Select the 3 most relevant projects. 
            - Prioritize projects with dates that align with the job's requirements.
@@ -257,6 +261,50 @@ class AIEngine:
     def generate_optimized_content(self, master_profile: dict, analysis: dict, portfolio_projects: dict, tone: str = "Professional", methodology: str = "STAR") -> dict:
         lang = analysis.get("detected_language", "en")
         
+        # --- ROBUST PHYSICAL PROJECT FILTERING ---
+        # 1. Build a pool of all possible experience descriptions
+        original_experience = master_profile.get("experience", [])
+        pool = []
+        for p in original_experience:
+            p["_source"] = "master"
+            pool.append(p)
+        for p in portfolio_projects:
+            p["_source"] = "portfolio"
+            pool.append(p)
+            
+        # 2. Extract relative identifiers from analysis
+        relevant_recs = analysis.get("relevant_projects", [])
+        rel_ids = [str(r.get("id", "")).lower().strip() for r in relevant_recs if r.get("id")]
+        rel_names = [str(r.get("name", "")).lower().strip() for r in relevant_recs if r.get("name")]
+        
+        # 3. Filter the pool
+        filtered_experience = []
+        seen_names = set()
+        
+        for item in pool:
+            name = str(item.get("name", item.get("company", ""))).lower().strip()
+            item_id = str(item.get("id", "")).lower().strip()
+            
+            # Match by ID or Name (case-insensitive)
+            is_match = False
+            if item_id and item_id in rel_ids: is_match = True
+            if name and (name in rel_names or name in rel_ids): is_match = True
+            
+            if is_match and name not in seen_names:
+                filtered_experience.append(item)
+                seen_names.add(name)
+        
+        # Safety/Fallback: If filtering returned nothing but analysis had recommendations, 
+        # it means the matching failed. In that case, we MUST still try to include something.
+        if not filtered_experience and relevant_recs:
+            print(f"DEBUG: Project matching failed. Pool size: {len(pool)}. Rel Names: {rel_names}")
+            # Fallback to the first 3 items in the pool or the original master experience
+            filtered_experience = original_experience[:3]
+            
+        # 4. OVERRIDE Master Profile Experience with ONLY the filtered projects
+        # This ensures the AI doesn't see "Mambo Fitness" if it wasn't selected
+        master_profile["experience"] = filtered_experience
+        
         # Localize default title if not provided or just "Software Engineer"
         prof_title = master_profile.get("basic_info", {}).get("title", "Software Engineer")
         if lang == "es" and prof_title == "Software Engineer":
@@ -293,9 +341,8 @@ class AIEngine:
         relevant_certs = analysis.get("relevant_certifications", [])
 
         prompt = f"""
-        Master Profile: {json.dumps(master_profile)}
+        Master Profile (FILTERED): {json.dumps(master_profile)}
         Analysis Context: {json.dumps(analysis)}
-        Portfolio Data: {json.dumps(portfolio_projects)}
         
         OUTPUT LANGUAGE: {lang}. **DO NOT MIX LANGUAGES**.
         
