@@ -35,7 +35,7 @@ class GroqProvider(LLMProvider):
         }
 
         try:
-            response = requests.post(self.url, headers=headers, json=payload)
+            response = requests.post(self.url, headers=headers, json=payload, timeout=30)
             if response.status_code == 429:
                 return "ERROR_QUOTA_EXCEEDED: Groq rate limit reached."
             response.raise_for_status()
@@ -134,11 +134,11 @@ class OllamaProvider(LLMProvider):
             payload["system"] = system_instruction
         
         try:
-            response = requests.post(self.url, json=payload)
+            response = requests.post(self.url, json=payload, timeout=10)
             response.raise_for_status()
             return response.json().get("response", "")
         except Exception as e:
-            return f"ERROR_PROVIDER_FAILED: Ollama offline. {str(e)}"
+            return f"ERROR_PROVIDER_FAILED: Ollama offline/timeout. {str(e)}"
 
 class GeminiProvider(LLMProvider):
     def __init__(self, api_key: str):
@@ -677,8 +677,50 @@ class AIEngine:
         TASK:
         Rewrite the achievement to naturally include the keyword. 
         Keep it concise, quantified, and technical.
-        Return ONLY the rewritten text, no explanations.
+        Return ONLY the rewritten text, no explanations. 
+        MANDATORY: Use `<strong>` and `</strong>` tags around technologies and quantified metrics.
         """
         
         rewritten = self.provider.generate(prompt, system_prompt)
         return rewritten.strip().strip('"').strip("'")
+
+    def suggest_keyword_placement(self, profile: Dict, keyword: str, language: str = "en") -> Dict:
+        """
+        Determines the best place to integrate a keyword (Skills vs specific Experience bullets).
+        """
+        system_prompt = f"You are an Expert Technical Branding Specialist. Your mission is to find the most impactful and natural place to integrate a keyword into a professional profile. Language: {language}."
+        
+        prompt = f"""
+        Profile Data: {json.dumps(profile)}
+        Target Keyword: {keyword}
+        
+        TASK:
+        Analyze the profile and decide:
+        1. **Skills**: Which category (backend, frontend, cloud, etc.) should this keyword belong to?
+        2. **Experience**: Identify up to 2 specific bullet points (highlights) in the work history where this keyword would fit most naturally.
+        
+        RETURN JSON:
+        {{
+          "skill_suggestion": {{
+             "category": "string (e.g., 'backend')",
+             "reason": "short explanation"
+          }},
+          "experience_suggestions": [
+            {{
+              "company": "company name",
+              "original_highlight": "exact text from profile",
+              "suggested_rewrite": "rewritten bullet including the keyword with <strong> tags",
+              "reason": "why it fits here"
+            }}
+          ]
+        }}
+        """
+        
+        response = self.provider.generate(prompt, system_prompt)
+        try:
+            json_match = re.search(r'(\{.*\})', response, re.DOTALL)
+            clean_json = json_match.group(1) if json_match else response
+            return json.loads(clean_json)
+        except Exception as e:
+            print(f"DEBUG: Keyword Suggestion Parse Error: {e}")
+            return {"error": "Failed to analyze placement"}

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import shutil
@@ -257,17 +257,6 @@ async def generate_cv_ats(request: GenerateRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/ai/optimize-highlight")
-async def optimize_highlight(request: OptimizeHighlightRequest):
-    try:
-        rewritten = ai_engine.optimize_highlight(
-            request.highlight_text, 
-            request.target_keyword, 
-            request.language
-        )
-        return {"rewritten_text": rewritten}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/cv/generate-cl")
 async def generate_cl(request: GenerateRequest):
@@ -301,6 +290,47 @@ async def generate_cl(request: GenerateRequest):
         return {"filename": filename, "content": cl_data}
     except Exception as e:
         print(f"CL Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/suggest-placement")
+async def suggest_keyword_placement(request: Request):
+    """
+    Endpoint for the Keyword Booster extension.
+    Suggests where to place a keyword (Experience vs Skills).
+    """
+    try:
+        data = await request.json()
+        profile = data.get("profile")
+        keyword = data.get("keyword")
+        language = data.get("language", "es")
+        
+        if not profile or not keyword:
+            raise HTTPException(status_code=400, detail="Profile and keyword are required")
+            
+        suggestions = ai_engine.suggest_keyword_placement(profile, keyword, language)
+        return suggestions
+    except Exception as e:
+        print(f"ERROR in suggest_placement: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/optimize-highlight")
+async def optimize_highlight(request: Request):
+    """
+    Optimizes a specific highlight with a keyword.
+    """
+    try:
+        data = await request.json()
+        highlight = data.get("highlight")
+        keyword = data.get("keyword")
+        language = data.get("language", "es")
+        
+        if not highlight or not keyword:
+            raise HTTPException(status_code=400, detail="Highlight and keyword are required")
+            
+        optimized = ai_engine.optimize_highlight(highlight, keyword, language)
+        return {"optimized_content": optimized}
+    except Exception as e:
+        print(f"ERROR in optimize_highlight: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
