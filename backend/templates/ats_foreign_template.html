@@ -97,7 +97,7 @@
 
     {% if summary %}
     <div class="section-title">{{ labels.summary }}</div>
-    <div style="text-align: justify; margin-bottom: 10px;">{{ summary | safe }}</div>
+    <div style="text-align: justify; margin-bottom: 10px;">{{ summary | md | safe }}</div>
     {% endif %}
 
     <div class="section-title">{{ labels.education }}</div>
@@ -125,7 +125,7 @@
         </div>
         <ul>
             {% for highlight in job.highlights %}
-            <li>{{ highlight | safe }}</li>
+            <li>{{ highlight | md | safe }}</li>
             {% endfor %}
         </ul>
     </div>

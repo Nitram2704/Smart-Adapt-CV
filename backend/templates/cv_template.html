@@ -406,7 +406,7 @@
                     <!-- Profile -->
                     <div class="section-title-main">{{ labels.summary if labels else "PROFESSIONAL SUMMARY" }}</div>
                     <div class="profile-text">
-                        {{ summary }}
+                        {{ summary | md | safe }}
                     </div>
 
                     <!-- Experience -->
@@ -420,7 +420,7 @@
                         <div class="exp-details">
                             {% if job.highlights %}
                             {% for highlight in job.highlights %}
-                            <p>• {{ highlight | safe }}</p>
+                            <p>• {{ highlight | md | safe }}</p>
                             {% endfor %}
                             {% endif %}
                         </div>

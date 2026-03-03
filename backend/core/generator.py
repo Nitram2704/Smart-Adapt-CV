@@ -1,4 +1,5 @@
 from jinja2 import Environment, FileSystemLoader
+import re
 try:
     from weasyprint import HTML
     WEASYPRINT_AVAILABLE = True
@@ -9,6 +10,19 @@ import os
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
 env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
+
+def markdown_to_html(text):
+    """Simple markdown-to-html converter for bold and italic."""
+    if not isinstance(text, str):
+        return text
+    # Convert bold **text** or __text__ to <strong>text</strong>
+    text = re.sub(r'(\*\*|__)(.*?)\1', r'<strong>\2</strong>', text)
+    # Convert italic *text* or _text_ to <em>text</em>
+    text = re.sub(r'(\*|_)(.*?)\1', r'<em>\2</em>', text)
+    return text
+
+# Register the filter
+env.filters['md'] = markdown_to_html
 
 def render_cv_html(data: dict, template_name: str = "cv_template.html") -> str:
     """Renders the CV data into HTML using Jinja2."""
