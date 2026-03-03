@@ -256,7 +256,13 @@ class AIEngine:
 
     def generate_optimized_content(self, master_profile: dict, analysis: dict, portfolio_projects: dict, tone: str = "Professional", methodology: str = "STAR") -> dict:
         lang = analysis.get("detected_language", "en")
-        title_instruction = 'The title should simply be "Software Engineer".' if lang == "en" else 'Use the original professional title from the master profile as is.'
+        
+        # Localize default title if not provided or just "Software Engineer"
+        prof_title = master_profile.get("basic_info", {}).get("title", "Software Engineer")
+        if lang == "es" and prof_title == "Software Engineer":
+            prof_title = "Ingeniero de Software"
+        
+        title_instruction = f'Use "{prof_title}" as the professional title in basic_info.title.'
         
         system_prompt = f"""You are an Expert Senior CV Writer and Technical Branding Specialist. 
         Language: {lang}. 
@@ -304,7 +310,9 @@ class AIEngine:
         4. **LANGUAGE ENFORCEMENT**: Every field (summary, roles, descriptions, reasons) MUST be in {lang}.
         5. **MANDATORY FIELDS**: For EACH experience entry, you MUST provide the `company` (Project/Company Name), `role`, `duration`, and `highlights`. DO NOT omit the company name.
         6. **PROJECTS / EXPERIENCE**: Redact highlights using the {methodology} method in {lang}.
-           - CRITICAL: Use EXACTLY FOUR BULLET POINTS PER ENTRY. 
+           - CRITICAL: Use ONLY the projects identified as relevant in 'Analysis Context' (found in `relevant_projects`).
+           - If there are fewer than 3 relevant projects, you may include the most recent experience entries to fill the space, but prioritize the relevant ones first.
+           - Use EXACTLY FOUR BULLET POINTS PER ENTRY. 
            - **Structure per entry**:
              - Situation: [Strategic context]
              - Task: [The high-level technical challenge]

@@ -1,5 +1,95 @@
 [
   {
+    "id": "4b1a1696-1fb5-466d-8e6f-9ff18bf3db18",
+    "date": "2026-03-03 06:49",
+    "company": "Unknown",
+    "role": "Unknown",
+    "match_score": 85,
+    "cv_filename": "cv_Martin_Sanchez_Urrego.pdf",
+    "vacancy_summary": "",
+    "status": "Generated"
+  },
+  {
+    "id": "3d219253-fb33-40c2-8feb-74ed516727a3",
+    "date": "2026-03-03 06:42",
+    "company": "Unknown",
+    "role": "Unknown",
+    "match_score": 85,
+    "cv_filename": "cv_Martin_Sanchez_Urrego.pdf",
+    "vacancy_summary": "",
+    "status": "Generated"
+  },
+  {
+    "id": "83f9b40c-705f-4073-8534-61745bf15752",
+    "date": "2026-03-02 07:40",
+    "company": "Unknown",
+    "role": "Unknown",
+    "match_score": 85,
+    "cv_filename": "cv_MARTIN_SANCHEZ_URREGO.pdf",
+    "vacancy_summary": "",
+    "status": "Generated"
+  },
+  {
+    "id": "468c818d-da33-46b7-ae9c-c0bdfd94ee9e",
+    "date": "2026-03-02 07:35",
+    "company": "Unknown",
+    "role": "Unknown",
+    "match_score": 20,
+    "cv_filename": "cv_MARTIN_SANCHEZ_URREGO.pdf",
+    "vacancy_summary": "",
+    "status": "Generated"
+  },
+  {
+    "id": "818fe37e-4f91-40fb-a403-6753d8a8d2dd",
+    "date": "2026-03-02 07:14",
+    "company": "Unknown",
+    "role": "Unknown",
+    "match_score": 80,
+    "cv_filename": "cv_Martin_Sanchez_Urrego.pdf",
+    "vacancy_summary": "",
+    "status": "Generated"
+  },
+  {
+    "id": "bb665c14-0b7e-4b9e-85f7-3d70a70366c3",
+    "date": "2026-02-28 12:55",
+    "company": "Unknown",
+    "role": "Unknown",
+    "match_score": 80,
+    "cv_filename": "cv_Martin_Sanchez_Urrego.pdf",
+    "vacancy_summary": "",
+    "status": "Generated"
+  },
+  {
+    "id": "941758a5-1597-4f80-be7a-f0c83e7ead8c",
+    "date": "2026-02-28 10:56",
+    "company": "Unknown",
+    "role": "Unknown",
+    "match_score": 85,
+    "cv_filename": "cv_Martin_Sanchez_Urrego.pdf",
+    "vacancy_summary": "",
+    "status": "Generated"
+  },
+  {
+    "id": "9316cacc-361f-4735-b1c7-1d2ac4b5c852",
+    "date": "2026-02-26 22:02",
+    "company": "Unknown",
+    "role": "Unknown",
+    "match_score": 85,
+    "cv_filename": "cv_Martin_Sanchez_Urrego.pdf",
+    "vacancy_summary": "",
+    "status": "Generated"
+  },
+  {
+    "id": "7b45736d-36f7-455a-b08b-9f29bfc135a1",
+    "date": "2026-02-26 21:02",
+    "company": "Unknown",
+    "role": "Unknown",
+    "match_score": 85,
+    "cv_filename": "cv_Martin_Sanchez_Urrego.pdf",
+    "vacancy_summary": "",
+    "status": "Generated"
+  },
+  {
     "id": "d4df9237-ca9d-41f8-9e47-ec787ef84b3c",
     "date": "2026-02-26 20:39",
     "company": "Unknown",

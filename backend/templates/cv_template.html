@@ -262,7 +262,7 @@
         <!-- Header Section -->
         <div class="header-container">
             <h1>{{ basic_info.name }}</h1>
-            <h2>{{ basic_info.title | default("Software Engineer") }}</h2>
+            <h2>{{ basic_info.title | default(labels.software_engineer if labels else "Software Engineer") }}</h2>
         </div>
 
         <!-- Main Layout Table -->
@@ -272,7 +272,7 @@
                 <td class="sidebar-cell">
 
                     <!-- Contact -->
-                    <div class="section-title-sidebar">Contact</div>
+                    <div class="section-title-sidebar">{{ labels.contact if labels else "Contact" }}</div>
                     <div class="contact-row">
                         <svg class="contact-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -337,7 +337,7 @@
                     {% endif %}
 
                     <!-- Education -->
-                    <div class="section-title-sidebar">{{ "EDUCATION" if language == "en" else "EDUCACIÓN" }}</div>
+                    <div class="section-title-sidebar">{{ labels.education if labels else "EDUCATION" }}</div>
                     <ul class="sidebar-list">
                         {% for edu in education %}
                         <li>
@@ -350,7 +350,7 @@
 
                     <!-- Certifications -->
                     {% if certifications %}
-                    <div class="section-title-sidebar">{{ "CERTIFICATIONS" if language == "en" else "CERTIFICACIONES" }}
+                    <div class="section-title-sidebar">{{ labels.certifications if labels else "CERTIFICATIONS" }}
                     </div>
                     <ul class="sidebar-list">
                         {% for cert in certifications %}
@@ -364,7 +364,7 @@
                     {% endif %}
 
                     <!-- Skills -->
-                    <div class="section-title-sidebar">{{ "SKILLS" if language == "en" else "HABILIDADES" }}</div>
+                    <div class="section-title-sidebar">{{ labels.skills if labels else "SKILLS" }}</div>
                     {% if skills.backend %}
                     <div class="tool-group">
                         <span class="tool-label">Backend</span>
@@ -391,7 +391,7 @@
                     {% endif %}
 
                     <!-- Languages -->
-                    <div class="section-title-sidebar">{{ "LANGUAGES" if language == "en" else "IDIOMAS" }}</div>
+                    <div class="section-title-sidebar">{{ labels.languages if labels else "LANGUAGES" }}</div>
                     <ul class="sidebar-list">
                         {% for lang in languages %}
                         <li>{{ lang.language }}: {{ lang.level }}</li>
@@ -404,15 +404,14 @@
                 <td class="content-cell">
 
                     <!-- Profile -->
-                    <div class="section-title-main">{{ "PROFESSIONAL SUMMARY" if language == "en" else "PERFIL
-                        PROFESIONAL" }}</div>
+                    <div class="section-title-main">{{ labels.summary if labels else "PROFESSIONAL SUMMARY" }}</div>
                     <div class="profile-text">
                         {{ summary }}
                     </div>
 
                     <!-- Experience -->
-                    <div class="section-title-main">{{ "PROJECT EXPERIENCE" if language == "en" else "EXPERIENCIA EN
-                        PROYECTOS" }}</div>
+                    <div class="section-title-main">{{ labels.project_experience if labels else "PROJECT EXPERIENCE" }}
+                    </div>
                     {% for job in experience %}
                     <div class="exp-item">
                         <div class="exp-role">{{ job.role }}</div>
@@ -429,7 +428,7 @@
                     {% endfor %}
 
                     <!-- References -->
-                    <div class="section-title-main">{{ "REFERENCES" if language == "en" else "REFERENCIAS" }}</div>
+                    <div class="section-title-main">{{ labels.references if labels else "REFERENCES" }}</div>
                     <table class="ref-table">
                         <tr>
                             <td>

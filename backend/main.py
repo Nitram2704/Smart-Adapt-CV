@@ -10,7 +10,7 @@ from core.portfolio import load_portfolio_projects, load_certifications
 from core.generator import render_cv_html, generate_pdf
 from core.history import HistoryManager
 from core.config_manager import ConfigManager, UserConfig
-
+from core.locales import get_labels
 load_dotenv()
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -193,6 +193,8 @@ async def generate_cv(request: GenerateRequest):
         print(f"DEBUG: Education Count: {len(optimized.get('education', []))}")
         print("DEBUG: -----------------------------------")
         
+        lang = request.recommendations.get("detected_language", "en")
+        optimized["labels"] = get_labels(lang)
         html = render_cv_html(optimized)
         
         # Verify HTML content briefly
@@ -242,6 +244,8 @@ async def generate_cv_ats(request: GenerateRequest):
         )
         
         # Use the NEW ATS template
+        lang = optimized.get("language", "en")
+        optimized["labels"] = get_labels(lang)
         html = render_cv_html(optimized, template_name="ats_foreign_template.html")
         
         safe_name = request.profile.get("basic_info", {}).get("name", "optimized").replace(" ", "_")
