@@ -1,0 +1,17 @@
+{
+    "name": "Documentation Generator (docgen)",
+    "description": "An advanced CLI tool that automates the generation of technical documentation from source code using RAG (Retrieval-Augmented Generation) and multi-provider LLMs.",
+    "stack": [
+        "Python",
+        "Typer",
+        "ChromaDB",
+        "FastEmbed",
+        "tree-sitter",
+        "Gemini Pro",
+        "DeepSeek",
+        "Groq",
+        "OpenRouter"
+    ],
+    "impact_metrics": "Automates technical documentation lifecycle with semantic code search and AI-driven content generation, significantly improving developer productivity.",
+    "year_hint": "2024-Present"
+}

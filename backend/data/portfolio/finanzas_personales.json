@@ -6,5 +6,6 @@
         "Pandas",
         "Google Sheets API"
     ],
-    "impact_metrics": "Automated financial tracking for over 50 users with real-time budget alerts."
+    "impact_metrics": "Automated financial tracking for over 50 users with real-time budget alerts.",
+    "year_hint": "2023"
 }

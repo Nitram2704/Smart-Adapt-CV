@@ -1,6 +1,14 @@
 {
     "name": "Smart-Adapt CV",
     "description": "An AI-powered career optimization engine that adapts CVs to specific job vacancies using local LLMs.",
-    "stack": ["Python", "FastAPI", "React", "Ollama", "GLM-4.7", "PostgreSQL"],
-    "impact_metrics": "Automated CV adaptation process reducing manual effort by 90%."
+    "stack": [
+        "Python",
+        "FastAPI",
+        "React",
+        "Ollama",
+        "GLM-4.7",
+        "PostgreSQL"
+    ],
+    "impact_metrics": "Automated CV adaptation process reducing manual effort by 90%.",
+    "year_hint": "2024-Present"
 }

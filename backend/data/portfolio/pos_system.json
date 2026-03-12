@@ -9,5 +9,6 @@
         "REST"
     ],
     "github_url": "https://github.com/samuelmontoya1314/System-POS",
-    "impact_metrics": "Processed over 1,000 transactions daily with 99.9% uptime."
+    "impact_metrics": "Processed over 1,000 transactions daily with 99.9% uptime.",
+    "year_hint": "2022"
 }

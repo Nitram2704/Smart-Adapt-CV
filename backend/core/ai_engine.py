@@ -201,7 +201,13 @@ class AIEngine:
         CRITICAL: Detect the language of the Job Vacancy (e.g., 'es' for Spanish, 'en' for English).
         All 'reasoning', 'recommendations', and 'reason' fields MUST be in the 'detected_language'.
         BE DYNAMIC: If the job description is broad, find the best overlap in skills. 
-        DO NOT be unnecessarily harsh. If it's a valid job, give a fair score."""
+        DO NOT be unnecessarily harsh. If it's a valid job, give a fair score.
+        
+        PRIORITY NOTE: Treat 'Documentation Generator (docgen)', 'AutoQA', and 'App Fitness' as high-priority 'Hero Projects'.
+        - 'docgen': Focus on RAG, AI Infrastructure, and Code Parsing.
+        - 'AutoQA': Focus on Autonomous Agents, Self-healing Automation, and QA.
+        - 'App Fitness': Focus on Mobile Development (React Native), UX, and robust complex systems.
+        Nudge their relevance higher if they align with the job's core technical requirements."""
         
         prompt = f"""
         CV Data: {json.dumps(cv_json)}
@@ -225,7 +231,7 @@ class AIEngine:
              - **Intermediate / Senior**: 6M - 15M+ COP monthly (72M - 180M+ COP/year).
            - Reasoning MUST be in the `detected_language`.
         4. **PORTFOLIO MATCHING**: Select the 3 most relevant projects. 
-           - Prioritize projects with dates that align with the job's requirements.
+           - Prioritize projects with dates that align with the job's requirements or career timeline.
         5. **TOOLS**: Identify ALL relevant tools. Categories: "Backend", "Frontend", "Databases", "Cloud", "Architecture", "Project Management".
         6. **CERTIFICATIONS**: Match available certifications to the job requirements.
 
@@ -365,10 +371,14 @@ class AIEngine:
              - Task: [The high-level technical challenge]
              - Action: [Sophisticated technical implementation]
              - Result: [Quantified achievement/Metric]
+           - **CAREER TIMELINE STIPULATION (CRITICAL)**:
+             - You MUST assign a realistic `duration` to each entry (e.g., "Jan 2022 - Present", "2020 - 2021"). 
+             - **STRATEGY**: Detect the seniority required by the job (e.g., Senior = 5+ years). Distribute the selected projects/experience across that timeframe ending in 'Present' or 'Actual'.
+             - If a project has a `year_hint` or `default_duration` in its data, respect that as a 'reality anchor' but adapt the months/years to form a continuous, logical career path without gaps.
+             - Use the format appropriate for the language (e.g., "Ene 2023 - Actual" for 'es', "Jan 2023 - Present" for 'en').
            - Ensure 4-8 high-impact bullet points total per project (e.g., repeating the STAR cycle for different features).
            - Do NOT use the pipe separator (|). Use individual line breaks.
            - Use advanced technical terminology suitable for Senior/Lead roles.
-           - Prioritize projects with dates that align with the job's needs.
         3. **CERTIFICATIONS**: Include the following certifications which were identified as relevant: {json.dumps(relevant_certs)}.
            - Also include any relevant certifications from the master profile.
         4. **TOOLS & SKILLS ENRICHMENT**:
