@@ -88,11 +88,7 @@
 
 ---
 
-## 📸 Screenshots
 
-*(Add screenshots of your dashboard here)*
-
----
 
 ## 🤝 Contributing
 
