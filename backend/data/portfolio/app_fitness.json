@@ -1,5 +1,6 @@
 {
     "name": "App Fitness",
+    "priority": 1,
     "description": "Mobile application focused on health tracking, workout routines, and fitness progress monitoring.",
     "stack": [
         "React Native",

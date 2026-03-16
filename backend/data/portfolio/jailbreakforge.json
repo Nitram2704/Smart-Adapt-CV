@@ -1,0 +1,17 @@
+{
+    "name": "JailBreakForge",
+    "priority": 1,
+    "description": "An advanced AI Security Red Teaming framework using a self-evolving multi-agent system (Attacker vs. Judge) to stress-test LLM alignment and safety boundaries.",
+    "stack": [
+        "Python",
+        "Agentic RAG",
+        "Groq (Inference)",
+        "OpenRouter",
+        "LLM-as-Judge",
+        "SQLite",
+        "Jinja2"
+    ],
+    "impact_metrics": "Automates complex jailbreak discovery through evolutionary prompt mutation, delivering detailed security audits with a proprietary 0-100 Resilience Score. Optimized for zero-friction red teaming of frontier models.",
+    "year_hint": "2026-Present",
+    "focus": "AI Security / Multi-Agent Systems"
+}

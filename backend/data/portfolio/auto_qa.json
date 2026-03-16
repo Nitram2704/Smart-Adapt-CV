@@ -1,5 +1,6 @@
 {
-    "name": "AutoQA",
+    "name": "autoQA",
+    "priority": 1,
     "description": "An agentic self-healing test automation tool using AI to analyze failures and generate fixes.",
     "stack": [
         "TypeScript",

@@ -1,5 +1,6 @@
 {
-    "name": "Documentation Generator (docgen)",
+    "name": "DocGen",
+    "priority": 1,
     "description": "An advanced CLI tool that automates the generation of technical documentation from source code using RAG (Retrieval-Augmented Generation) and multi-provider LLMs.",
     "stack": [
         "Python",
