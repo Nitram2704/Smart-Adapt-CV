@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import shutil
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 from core.parser import extract_text_from_pdf, parse_text_to_master_profile
 from core.ai_engine import AIEngine, OllamaProvider, GeminiProvider, GroqProvider, OpenRouterProvider, FallbackProvider
@@ -174,12 +175,14 @@ async def generate_cv(request: GenerateRequest):
         portfolio_projects = load_portfolio_projects()
         print(f"DEBUG: Loaded {len(portfolio_projects)} portfolio projects.")
         
+        current_date_str = datetime.now().strftime("%B %Y")
         optimized = ai_engine.generate_optimized_content(
             request.profile, 
             request.recommendations, 
             portfolio_projects,
             tone=request.tone,
-            methodology=request.methodology
+            methodology=request.methodology,
+            current_date=current_date_str
         )
         
         print("DEBUG: --- OPTIMIZED CONTENT STRUCTURE ---")
@@ -235,12 +238,14 @@ async def generate_cv_ats(request: GenerateRequest):
         print(f"DEBUG: /cv/generate-ats called.")
         portfolio_projects = load_portfolio_projects()
         
+        current_date_str = datetime.now().strftime("%B %Y")
         optimized = ai_engine.generate_optimized_content(
             request.profile, 
             request.recommendations, 
             portfolio_projects,
             tone=request.tone,
-            methodology=request.methodology
+            methodology=request.methodology,
+            current_date=current_date_str
         )
         
         # Use the NEW ATS template
@@ -261,7 +266,13 @@ async def generate_cv_ats(request: GenerateRequest):
 @app.post("/cv/generate-cl")
 async def generate_cl(request: GenerateRequest):
     try:
-        cl_data = ai_engine.generate_cover_letter(request.profile, request.vacancy_text, request.recommendations)
+        current_date_str = datetime.now().strftime("%B %Y")
+        cl_data = ai_engine.generate_cover_letter(
+            request.profile, 
+            request.vacancy_text, 
+            request.recommendations,
+            current_date=current_date_str
+        )
         
         # Structure data for the template
         lang = request.recommendations.get("detected_language", "en")
@@ -274,7 +285,7 @@ async def generate_cl(request: GenerateRequest):
                 "phone": request.profile.get("basic_info", {}).get("phone", ""),
                 "linkedin_url": request.profile.get("basic_info", {}).get("linkedin", "")
             },
-            "date": cl_data.get("date", "Today"),
+            "date": cl_data.get("date", current_date_str),
             "recipient_info": {
                 "hiring_manager": cl_data.get("recipient", "Hiring Manager"),
                 "company_name": request.recommendations.get("company_name", "the Team")

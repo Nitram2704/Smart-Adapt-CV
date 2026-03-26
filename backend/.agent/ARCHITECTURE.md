@@ -1,176 +1,252 @@
-# Antigravity Kit Architecture
+# Antigravity Kit + ECC Architecture
 
 > Comprehensive AI Agent Capability Expansion Toolkit
+>
+> **Fusion of Antigravity Kit + Everything Claude Code (ECC)**
 
 ---
 
-## 📋 Overview
+## Overview
 
-Antigravity Kit is a modular system consisting of:
+This is a unified framework combining:
+- **Antigravity Kit** - Original skills, agents, and workflows
+- **Everything Claude Code (ECC)** - 125+ additional skills, 28 agents, 60 commands
 
-- **20 Specialist Agents** - Role-based AI personas
-- **36 Skills** - Domain-specific knowledge modules
-- **11 Workflows** - Slash command procedures
+### Stats
+
+| Metric               | Count |
+|---------------------|-------|
+| **Agents**          | 48    |
+| **Skills**          | 160   |
+| **Commands**        | 60    |
+| **Workflows**       | 11    |
+| **Rules**           | 12 languages |
+| **Hooks**           | Hooks system with hooks.json |
+| **Contexts**        | 3 (dev, research, review) |
+| **MCP Configs**     | MCP server configurations |
 
 ---
 
-## 🏗️ Directory Structure
+## Directory Structure
 
-```plaintext
+```
 .agent/
 ├── ARCHITECTURE.md          # This file
-├── agents/                  # 20 Specialist Agents
-├── skills/                  # 36 Skills
-├── workflows/               # 11 Slash Commands
-├── rules/                   # Global Rules
-└── scripts/                 # Master Validation Scripts
+├── agents/                  # 48 Specialist Agents
+├── skills/                  # 160 Skills
+├── commands/                # 60 Slash Commands (from ECC)
+├── workflows/               # 11 Workflows (from Antigravity)
+├── rules/                   # Language-specific rules
+│   ├── common/             # Universal rules
+│   ├── python/             # Python patterns
+│   ├── typescript/         # TypeScript/JS rules
+│   ├── golang/             # Go patterns
+│   ├── rust/               # Rust patterns
+│   └── ...                 # 12 languages total
+├── hooks/                   # Hook automations
+│   ├── hooks.json          # Hook definitions
+│   └── README.md           # Hook documentation
+├── contexts/               # Dynamic context injection
+│   ├── dev.md
+│   ├── research.md
+│   └── review.md
+├── mcp-configs/            # MCP server configurations
+├── scripts/                # Validation scripts
+└── .shared/                # Shared resources (ui-ux-pro-max)
 ```
 
 ---
 
-## 🤖 Agents (20)
+## Agents (48)
 
-Specialist AI personas for different domains.
+### From Antigravity Kit (20)
 
-| Agent                    | Focus                      | Skills Used                                              |
-| ------------------------ | -------------------------- | -------------------------------------------------------- |
-| `orchestrator`           | Multi-agent coordination   | parallel-agents, behavioral-modes                        |
-| `project-planner`        | Discovery, task planning   | brainstorming, plan-writing, architecture                |
-| `frontend-specialist`    | Web UI/UX                  | frontend-design, react-best-practices, tailwind-patterns |
-| `backend-specialist`     | API, business logic        | api-patterns, nodejs-best-practices, database-design     |
-| `database-architect`     | Schema, SQL                | database-design, prisma-expert                           |
-| `mobile-developer`       | iOS, Android, RN           | mobile-design                                            |
-| `game-developer`         | Game logic, mechanics      | game-development                                         |
-| `devops-engineer`        | CI/CD, Docker              | deployment-procedures, docker-expert                     |
-| `security-auditor`       | Security compliance        | vulnerability-scanner, red-team-tactics                  |
-| `penetration-tester`     | Offensive security         | red-team-tactics                                         |
-| `test-engineer`          | Testing strategies         | testing-patterns, tdd-workflow, webapp-testing           |
-| `debugger`               | Root cause analysis        | systematic-debugging                                     |
-| `performance-optimizer`  | Speed, Web Vitals          | performance-profiling                                    |
-| `seo-specialist`         | Ranking, visibility        | seo-fundamentals, geo-fundamentals                       |
-| `documentation-writer`   | Manuals, docs              | documentation-templates                                  |
-| `product-manager`        | Requirements, user stories | plan-writing, brainstorming                              |
-| `product-owner`          | Strategy, backlog, MVP     | plan-writing, brainstorming                              |
-| `qa-automation-engineer` | E2E testing, CI pipelines  | webapp-testing, testing-patterns                         |
-| `code-archaeologist`     | Legacy code, refactoring   | clean-code, code-review-checklist                        |
-| `explorer-agent`         | Codebase analysis          | -                                                        |
+| Agent                    | Focus                      |
+| ------------------------ | -------------------------- |
+| `orchestrator`           | Multi-agent coordination   |
+| `project-planner`        | Discovery, task planning   |
+| `frontend-specialist`    | Web UI/UX                  |
+| `backend-specialist`     | API, business logic        |
+| `database-architect`     | Schema, SQL                |
+| `mobile-developer`       | iOS, Android, RN           |
+| `game-developer`         | Game logic, mechanics      |
+| `devops-engineer`        | CI/CD, Docker              |
+| `security-auditor`       | Security compliance        |
+| `penetration-tester`     | Offensive security         |
+| `test-engineer`          | Testing strategies         |
+| `debugger`               | Root cause analysis        |
+| `performance-optimizer`  | Speed, Web Vitals          |
+| `seo-specialist`         | Ranking, visibility        |
+| `documentation-writer`   | Manuals, docs              |
+| `product-manager`        | Requirements, user stories |
+| `product-owner`          | Strategy, backlog, MVP     |
+| `qa-automation-engineer` | E2E testing, CI pipelines  |
+| `code-archaeologist`     | Legacy code, refactoring   |
+| `explorer-agent`         | Codebase analysis          |
 
----
+### From ECC (28)
 
-## 🧩 Skills (36)
-
-Modular knowledge domains that agents can load on-demand. based on task context.
-
-### Frontend & UI
-
-| Skill                   | Description                                                           |
-| ----------------------- | --------------------------------------------------------------------- |
-| `react-best-practices`  | React & Next.js performance optimization (Vercel - 57 rules)          |
-| `web-design-guidelines` | Web UI audit - 100+ rules for accessibility, UX, performance (Vercel) |
-| `tailwind-patterns`     | Tailwind CSS v4 utilities                                             |
-| `frontend-design`       | UI/UX patterns, design systems                                        |
-| `ui-ux-pro-max`         | 50 styles, 21 palettes, 50 fonts                                      |
-
-### Backend & API
-
-| Skill                   | Description                    |
-| ----------------------- | ------------------------------ |
-| `api-patterns`          | REST, GraphQL, tRPC            |
-| `nestjs-expert`         | NestJS modules, DI, decorators |
-| `nodejs-best-practices` | Node.js async, modules         |
-| `python-patterns`       | Python standards, FastAPI      |
-
-### Database
-
-| Skill             | Description                 |
-| ----------------- | --------------------------- |
-| `database-design` | Schema design, optimization |
-| `prisma-expert`   | Prisma ORM, migrations      |
-
-### TypeScript/JavaScript
-
-| Skill               | Description                         |
-| ------------------- | ----------------------------------- |
-| `typescript-expert` | Type-level programming, performance |
-
-### Cloud & Infrastructure
-
-| Skill                   | Description               |
-| ----------------------- | ------------------------- |
-| `docker-expert`         | Containerization, Compose |
-| `deployment-procedures` | CI/CD, deploy workflows   |
-| `server-management`     | Infrastructure management |
-
-### Testing & Quality
-
-| Skill                   | Description              |
-| ----------------------- | ------------------------ |
-| `testing-patterns`      | Jest, Vitest, strategies |
-| `webapp-testing`        | E2E, Playwright          |
-| `tdd-workflow`          | Test-driven development  |
-| `code-review-checklist` | Code review standards    |
-| `lint-and-validate`     | Linting, validation      |
-
-### Security
-
-| Skill                   | Description              |
-| ----------------------- | ------------------------ |
-| `vulnerability-scanner` | Security auditing, OWASP |
-| `red-team-tactics`      | Offensive security       |
-
-### Architecture & Planning
-
-| Skill           | Description                |
-| --------------- | -------------------------- |
-| `app-builder`   | Full-stack app scaffolding |
-| `architecture`  | System design patterns     |
-| `plan-writing`  | Task planning, breakdown   |
-| `brainstorming` | Socratic questioning       |
-
-### Mobile
-
-| Skill           | Description           |
-| --------------- | --------------------- |
-| `mobile-design` | Mobile UI/UX patterns |
-
-### Game Development
-
-| Skill              | Description           |
-| ------------------ | --------------------- |
-| `game-development` | Game logic, mechanics |
-
-### SEO & Growth
-
-| Skill              | Description                   |
-| ------------------ | ----------------------------- |
-| `seo-fundamentals` | SEO, E-E-A-T, Core Web Vitals |
-| `geo-fundamentals` | GenAI optimization            |
-
-### Shell/CLI
-
-| Skill                | Description               |
-| -------------------- | ------------------------- |
-| `bash-linux`         | Linux commands, scripting |
-| `powershell-windows` | Windows PowerShell        |
-
-### Other
-
-| Skill                     | Description               |
-| ------------------------- | ------------------------- |
-| `clean-code`              | Coding standards (Global) |
-| `behavioral-modes`        | Agent personas            |
-| `parallel-agents`         | Multi-agent patterns      |
-| `mcp-builder`             | Model Context Protocol    |
-| `documentation-templates` | Doc formats               |
-| `i18n-localization`       | Internationalization      |
-| `performance-profiling`   | Web Vitals, optimization  |
-| `systematic-debugging`    | Troubleshooting           |
+| Agent                    | Focus                      |
+| ------------------------ | -------------------------- |
+| `planner`                | Feature implementation planning |
+| `architect`              | System design decisions    |
+| `tdd-guide`              | Test-driven development    |
+| `code-reviewer`          | Quality and security review |
+| `security-reviewer`      | Vulnerability analysis     |
+| `build-error-resolver`   | Build error resolution     |
+| `e2e-runner`             | Playwright E2E testing     |
+| `refactor-cleaner`       | Dead code cleanup          |
+| `doc-updater`            | Documentation sync         |
+| `docs-lookup`            | Documentation/API lookup    |
+| `chief-of-staff`         | Communication triage       |
+| `loop-operator`          | Autonomous loop execution   |
+| `harness-optimizer`      | Harness config tuning      |
+| `typescript-reviewer`    | TypeScript/JavaScript review |
+| `python-reviewer`        | Python code review         |
+| `go-reviewer`            | Go code review             |
+| `go-build-resolver`      | Go build errors            |
+| `java-reviewer`          | Java code review           |
+| `java-build-resolver`    | Java build errors          |
+| `kotlin-reviewer`        | Kotlin code review         |
+| `kotlin-build-resolver`  | Kotlin build errors        |
+| `rust-reviewer`          | Rust code review           |
+| `rust-build-resolver`    | Rust build errors          |
+| `cpp-reviewer`           | C++ code review            |
+| `cpp-build-resolver`     | C++ build errors           |
+| `database-reviewer`      | Database/Supabase review   |
+| `pytorch-build-resolver` | PyTorch/CUDA errors        |
+| `flutter-reviewer`       | Flutter/Dart code review   |
 
 ---
 
-## 🔄 Workflows (11)
+## Skills (160)
 
-Slash command procedures. Invoke with `/command`.
+### Categories
+
+#### AI/LLM (New from ECC)
+- `claude-api` - Claude SDK usage, streaming, tool use
+- `prompt-optimizer` - Analyzes and optimizes prompts
+- `continuous-learning` - Auto-extracts patterns from sessions
+- `continuous-learning-v2` - Advanced pattern extraction
+- `cost-aware-llm-pipeline` - Cost optimization for LLM calls
+- `ai-first-engineering` - AI-native development patterns
+
+#### Python/Backend
+- `python-patterns` - Type hints, error handling, context managers
+- `python-testing` - pytest patterns, mocking, fixtures
+- `django-patterns` - Django best practices
+- `django-security` - Django security patterns
+- `django-tdd` - Django test-driven development
+- `postgres-patterns` - PostgreSQL optimization, RLS
+- `api-design` - REST conventions, pagination, versioning
+
+#### Frontend/Next.js
+- `frontend-patterns` - React composition, hooks, performance
+- `nextjs-turbopack` - Turbopack optimization
+- `nuxt4-patterns` - Nuxt.js patterns
+
+#### Testing
+- `tdd-workflow` - Test-driven development workflow
+- `e2e-testing` - End-to-end testing patterns
+- `verification-loop` - Automated verification cycles
+- `benchmark` - Performance benchmarking
+
+#### DevOps/Infrastructure
+- `docker-patterns` - Dockerfile best practices, Compose
+- `deployment-patterns` - CI/CD, deployment strategies
+- `mcp-server-patterns` - Model Context Protocol servers
+
+#### Security
+- `security-review` - Input validation, XSS/CSRF prevention
+- `security-scan` - Security scanning automation
+
+#### Languages
+- `golang-patterns`, `golang-testing`
+- `rust-patterns`, `rust-testing`
+- `java-coding-standards`, `jpa-patterns`
+- `kotlin-patterns`, `kotlin-coroutines-flows`
+- `swiftui-patterns`, `swift-concurrency-6-2`
+- `cpp-coding-standards`, `cpp-testing`
+- `perl-patterns`, `perl-security`
+
+#### Frameworks
+- `springboot-patterns`, `springboot-security`
+- `laravel-patterns`, `laravel-security`
+- `flutter-dart-code-review`
+
+#### Specialized
+- `pytorch-patterns` - PyTorch/CUDA patterns
+- `clickhouse-io` - ClickHouse database patterns
+- `android-clean-architecture` - Android Clean Architecture
+
+#### Meta/Utility
+- `configure-ecc` - ECC setup and configuration
+- `skill-stocktake` - Audit installed components
+- `search-first` - Research-first development
+- `blueprint` - Epic-scope project planning
+
+---
+
+## Commands (60)
+
+From ECC - invoke with `/command`:
+
+### Planning & Execution
+- `/plan` - Feature implementation planning
+- `/tdd` - Test-driven development workflow
+- `/code-review` - Code quality review
+- `/build-fix` - Build error resolution
+- `/e2e` - End-to-end testing
+- `/refactor-clean` - Dead code cleanup
+
+### Learning & Evolution
+- `/learn` - Extract patterns from session
+- `/learn-eval` - Evaluate learned patterns
+- `/instinct-status` - Check instinct status
+- `/evolve` - Evolve learned skills
+
+### Multi-Agent
+- `/multi-plan` - Multi-agent planning
+- `/multi-execute` - Multi-agent execution
+- `/multi-backend` - Backend-focused multi-agent
+- `/multi-frontend` - Frontend-focused multi-agent
+- `/orchestrate` - Agent coordination
+
+### Language-Specific
+- `/python-review` - Python code review
+- `/go-review`, `/go-test`, `/go-build` - Go workflow
+- `/kotlin-review`, `/kotlin-test`, `/kotlin-build` - Kotlin
+- `/rust-review`, `/rust-test`, `/rust-build` - Rust
+- `/cpp-review`, `/cpp-test`, `/cpp-build` - C++
+
+### Quality
+- `/security-scan` - Security vulnerability scan
+- `/test-coverage` - Test coverage analysis
+- `/quality-gate` - Quality gate enforcement
+- `/verify` - Verification workflow
+
+### Session Management
+- `/save-session` - Save session state
+- `/resume-session` - Resume saved session
+- `/sessions` - List all sessions
+- `/checkpoint` - Create checkpoint
+
+### Project Management
+- `/pm2` - Project management workflow
+- `/setup-pm` - Setup project management
+- `/projects` - List projects
+
+### Utilities
+- `/prompt-optimize` - Optimize prompts
+- `/harness-audit` - Audit harness configuration
+- `/model-route` - Model routing
+- `/context-budget` - Context budget management
+
+---
+
+## Workflows (11)
+
+From Antigravity Kit:
 
 | Command          | Description              |
 | ---------------- | ------------------------ |
@@ -188,101 +264,71 @@ Slash command procedures. Invoke with `/command`.
 
 ---
 
-## 🎯 Skill Loading Protocol
+## Rules (12 Languages)
 
-```plaintext
-User Request → Skill Description Match → Load SKILL.md
-                                            ↓
-                                    Read references/
-                                            ↓
-                                    Read scripts/
-```
+Language-specific coding rules in `rules/`:
 
-### Skill Structure
-
-```plaintext
-skill-name/
-├── SKILL.md           # (Required) Metadata & instructions
-├── scripts/           # (Optional) Python/Bash scripts
-├── references/        # (Optional) Templates, docs
-└── assets/            # (Optional) Images, logos
-```
-
-### Enhanced Skills (with scripts/references)
-
-| Skill               | Files | Coverage                            |
-| ------------------- | ----- | ----------------------------------- |
-| `ui-ux-pro-max`     | 27    | 50 styles, 21 palettes, 50 fonts    |
-| `app-builder`       | 20    | Full-stack scaffolding              |
+| Directory    | Language        |
+| ------------ | --------------- |
+| `common/`    | Universal rules |
+| `python/`    | Python          |
+| `typescript/`| TypeScript/JS   |
+| `golang/`    | Go              |
+| `rust/`      | Rust            |
+| `java/`      | Java            |
+| `kotlin/`    | Kotlin          |
+| `cpp/`       | C++             |
+| `swift/`     | Swift           |
+| `php/`       | PHP             |
+| `csharp/`    | C#              |
+| `perl/`      | Perl            |
 
 ---
 
-## � Scripts (2)
+## Hooks
 
-Master validation scripts that orchestrate skill-level scripts.
+The hooks system allows automatic actions on events:
 
-### Master Scripts
+Located in `hooks/hooks.json` with documentation in `hooks/README.md`.
 
-| Script          | Purpose                                 | When to Use              |
-| --------------- | --------------------------------------- | ------------------------ |
-| `checklist.py`  | Priority-based validation (Core checks) | Development, pre-commit  |
-| `verify_all.py` | Comprehensive verification (All checks) | Pre-deployment, releases |
-
-### Usage
-
-```bash
-# Quick validation during development
-python .agent/scripts/checklist.py .
-
-# Full verification before deployment
-python .agent/scripts/verify_all.py . --url http://localhost:3000
-```
-
-### What They Check
-
-**checklist.py** (Core checks):
-
-- Security (vulnerabilities, secrets)
-- Code Quality (lint, types)
-- Schema Validation
-- Test Suite
-- UX Audit
-- SEO Check
-
-**verify_all.py** (Full suite):
-
-- Everything in checklist.py PLUS:
-- Lighthouse (Core Web Vitals)
-- Playwright E2E
-- Bundle Analysis
-- Mobile Audit
-- i18n Check
-
-For details, see [scripts/README.md](scripts/README.md)
+Hook types:
+- `PreToolUse` - Before tool execution
+- `PostToolUse` - After tool execution
+- `Stop` - On session end
 
 ---
 
-## 📊 Statistics
+## Contexts
 
-| Metric              | Value                         |
-| ------------------- | ----------------------------- |
-| **Total Agents**    | 20                            |
-| **Total Skills**    | 36                            |
-| **Total Workflows** | 11                            |
-| **Total Scripts**   | 2 (master) + 18 (skill-level) |
-| **Coverage**        | ~90% web/mobile development   |
+Dynamic system prompt injection for different modes:
+
+| Context      | Purpose                    |
+| ------------ | -------------------------- |
+| `dev.md`     | Development context        |
+| `research.md`| Research context           |
+| `review.md`  | Code review context        |
 
 ---
 
-## 🔗 Quick Reference
+## Quick Reference
 
-| Need     | Agent                 | Skills                                |
-| -------- | --------------------- | ------------------------------------- |
-| Web App  | `frontend-specialist` | react-best-practices, frontend-design |
-| API      | `backend-specialist`  | api-patterns, nodejs-best-practices   |
-| Mobile   | `mobile-developer`    | mobile-design                         |
-| Database | `database-architect`  | database-design, prisma-expert        |
-| Security | `security-auditor`    | vulnerability-scanner                 |
-| Testing  | `test-engineer`       | testing-patterns, webapp-testing      |
-| Debug    | `debugger`            | systematic-debugging                  |
-| Plan     | `project-planner`     | brainstorming, plan-writing           |
+| Need        | Agent                 | Skills                                |
+| ----------- | --------------------- | ------------------------------------- |
+| Web App     | `frontend-specialist` | `frontend-patterns`, `react-best-practices` |
+| API         | `backend-specialist`  | `api-patterns`, `python-patterns`    |
+| Database    | `database-architect`  | `postgres-patterns`, `database-design` |
+| Security    | `security-reviewer`   | `security-review`, `security-scan`    |
+| Testing     | `tdd-guide`           | `tdd-workflow`, `testing-patterns`    |
+| Debug       | `debugger`            | `systematic-debugging`                |
+| Plan        | `planner`             | `plan-writing`, `brainstorming`      |
+| AI/LLM      | -                     | `claude-api`, `prompt-optimizer`      |
+| Docker      | `devops-engineer`     | `docker-patterns`                    |
+
+---
+
+## Sources
+
+- **Antigravity Kit** - Original framework
+- **Everything Claude Code (ECC)** - by affaan-m (Anthropic Hackathon Winner)
+  - GitHub: https://github.com/affaan-m/everything-claude-code
+  - License: MIT

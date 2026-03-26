@@ -264,7 +264,7 @@ class AIEngine:
             print(f"DEBUG: AI Analysis Parse Error: {e}")
             return {"error": "Failed to parse AI response", "raw": response_text}
 
-    def generate_optimized_content(self, master_profile: dict, analysis: dict, portfolio_projects: dict, tone: str = "Professional", methodology: str = "STAR") -> dict:
+    def generate_optimized_content(self, master_profile: dict, analysis: dict, portfolio_projects: dict, tone: str = "Professional", methodology: str = "STAR", current_date: Optional[str] = None) -> dict:
         lang = analysis.get("detected_language", "en")
         
         # --- ROBUST PHYSICAL PROJECT FILTERING ---
@@ -372,10 +372,18 @@ class AIEngine:
              - Action: [Sophisticated technical implementation]
              - Result: [Quantified achievement/Metric]
            - **CAREER TIMELINE STIPULATION (CRITICAL)**:
+             - Today is: {current_date if current_date else "March 2026"}.
              - You MUST assign a realistic `duration` to each entry (e.g., "Jan 2022 - Present", "2020 - 2021"). 
-             - **STRATEGY**: Detect the seniority required by the job (e.g., Senior = 5+ years). Distribute the selected projects/experience across that timeframe ending in 'Present' or 'Actual'.
-             - If a project has a `year_hint` or `default_duration` in its data, respect that as a 'reality anchor' but adapt the months/years to form a continuous, logical career path without gaps.
-             - Use the format appropriate for the language (e.g., "Ene 2023 - Actual" for 'es', "Jan 2023 - Present" for 'en').
+             - **STRATEGY (BACKWARD RECONSTRUCTION)**: 
+                - Start assigning dates from the current date ({current_date if current_date else "March 2026"}) and work BACKWARD.
+                - **MANDATORY DATE SEQUENCE (GOLD STANDARD)**: You MUST aim for the following sequence for the top 3 entries to ensure maximum profile "heat" in 2025/2026:
+                  1. Most Recent: **Aug 2025 - Present** (or Current)
+                  2. Second Recent: **Jan 2025 - Oct 2025**
+                  3. Third Recent: **Sep 2024 - Feb 2025**
+                - *Note*: Small overlaps between these dates are acceptable as they represent high-intensity project-based work or transitions.
+                - **GAPLESS CONTINUITY**: For any roles beyond the top 3, ensure there is ZERO GAP between the end of one role and the start of the next. 
+                - **RECHRONOLOGY**: Shift all project work forward to fit this 2024-2026 window. Ensure at least one current/active role ends in "Present" or "Actual".
+               - Use the format appropriate for the language (e.g., "Ene 2023 - Actual" for 'es', "Jan 2023 - Present" for 'en').
            - Ensure 4-8 high-impact bullet points total per project (e.g., repeating the STAR cycle for different features).
            - Do NOT use the pipe separator (|). Use individual line breaks.
            - Use advanced technical terminology suitable for Senior/Lead roles.
@@ -596,7 +604,7 @@ class AIEngine:
             master_profile["language"] = lang
             return master_profile
 
-    def generate_cover_letter(self, master_profile: dict, job_text: str, analysis: dict) -> dict:
+    def generate_cover_letter(self, master_profile: dict, job_text: str, analysis: dict, current_date: Optional[str] = None) -> dict:
         lang = analysis.get("detected_language", "en")
         system_prompt = f"You are an expert executive letter writer. Language: {lang}."
         prompt = f"""
@@ -606,9 +614,10 @@ class AIEngine:
         Analysis: {json.dumps(analysis)}
 
         CRITICAL: 
-        1. **LANGUAGE**: The entire content MUST be in '{lang}'.
-        2. **DYNAMISM**: Reference specific projects from the 'relevant_projects' list.
-        3. **STRUCTURE**: Professional and results-oriented.
+        1. **DATE**: Today is {current_date if current_date else "March 2026"}. Use this as the reference date for the letter.
+        2. **LANGUAGE**: The entire content MUST be in '{lang}'.
+        3. **DYNAMISM**: Reference specific projects from the 'relevant_projects' list.
+        4. **STRUCTURE**: Professional and results-oriented.
 
         Return a JSON object with:
         {{
